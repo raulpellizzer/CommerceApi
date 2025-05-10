@@ -23,8 +23,8 @@ class DatabaseConnector
     {
         try {
             $this->dbConnection = new \PDO(
-                'mysql:host=' . $host . ';dbname=' . $db, $user, $pass
-            );
+                'mysql:host=' . $host . ';dbname=' . $db, $user, $pass, array(
+                \PDO::ATTR_PERSISTENT => true));
 
             $this->dbConnection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         } catch (\PDOException $e) {

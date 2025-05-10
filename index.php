@@ -17,11 +17,13 @@
 	// 	header("HTTP/1.1 404 Not Found");
 	// 	exit();
 	// }
-
 	//var_dump($dbConnection);
+
+	$requestMethod = $_SERVER["REQUEST_METHOD"];
+
 	$apiController = new ApiController($dbConnection);
-	$response = $apiController->EndPointIsUp();
+	$response = $apiController->processRequest($requestMethod);
+	
 
 	echo $response;
-	
 	
