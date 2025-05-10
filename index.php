@@ -8,7 +8,7 @@
 	$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 	$uri = explode( '/', $uri );
 
-	echo "URI 1: $uri[1]\n";
+	echo "Ok\n";
 
 	// // all of our endpoints start with /person
 	// // everything else results in a 404 Not Found
@@ -17,8 +17,4 @@
 	// 	exit();
 	// }
 
-	$requestMethod = $_SERVER["REQUEST_METHOD"];
-	echo "Request Method: $requestMethod\n";
-
 	require "bootstrap.php";
-?>
