@@ -19,7 +19,7 @@ class ApiController
         ]);
     }
 
-    public function processRequest($requestMethod)
+    public function processRequest($requestMethod, $uri)
     {
         switch ($requestMethod) {
             case 'GET':
