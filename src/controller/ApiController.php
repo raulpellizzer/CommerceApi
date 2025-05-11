@@ -1,16 +1,26 @@
 <?php
 namespace Src\Controller;
+use Src\Controller\Products\ProductController;
 
 class ApiController
-{
+{   
     private $dbConnection;
-    private $requestMethod;
 
+    /**
+     * ApiController constructor
+     *
+     * @param object $dbConnection Database connection object
+     */
     public function __construct($dbConnection)
     {
         $this->dbConnection = $dbConnection;
     }
 
+    /**
+     * Check if the API endpoint is up
+     *
+     * @return string JSON response
+     */
     public function EndPointIsUp()
     {
         return json_encode([
@@ -19,25 +29,25 @@ class ApiController
         ]);
     }
 
+    /**
+     * Process the incoming request
+     *
+     * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
+     * @param array $uri The URI segments
+     * @return string JSON response
+     */
     public function processRequest($requestMethod, $uri)
     {
-        switch ($requestMethod) {
-            case 'GET':
-                return $this->EndPointIsUp();
-            case 'POST':
-                // Handle POST request
-                break;
-            case 'PUT':
-                // Handle PUT request
-                break;
-            case 'DELETE':
-                // Handle DELETE request
-                break;
-            default:
-                return json_encode([
-                    'status' => 'error',
-                    'message' => 'Invalid request method'
-                ]);
+        $resource = "";
+
+        if (isset($uri[2])) {
+            $resource = trim($uri[2]);
+
+            if($resource === 'products') {
+                $productController = new ProductController($requestMethod, $this->dbConnection);
+                $response = $productController->processRequest();
+                return $response;
+            }
         }
     }
 }
