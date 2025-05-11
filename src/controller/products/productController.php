@@ -19,7 +19,6 @@ class ProductController
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
      */
-
     public function __construct($requestMethod, $dbConnection)
     {
         $this->requestMethod = $requestMethod;
@@ -37,14 +36,14 @@ class ProductController
             case 'GET':
                 return $this->productModel->getAllProducts();
             case 'POST':
-                return $this->createProduct();
+                return $this->productModel->createProduct();
             case 'PUT':
                 return $this->updateProduct();
             case 'DELETE':
                 return $this->deleteProduct();
             default:
                 return json_encode([
-                    'status' => 'error',
+                    'status' => '400',
                     'message' => 'Invalid request method'
                 ]);
         }

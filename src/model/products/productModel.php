@@ -47,4 +47,69 @@ class ProductModel
             ]);
         }
     }
+
+    /**
+     * Checks in barcode already exists in the database
+     *
+     * @return string JSON response
+     */
+    private function checkProductExists($barcode)
+    {
+        $statement = $this->dbConnection->prepare('SELECT * FROM products WHERE Barcode = :barcode');
+        $statement->execute([
+            'barcode' => $barcode
+        ]);
+
+        return $statement->rowCount() > 0;
+    }
+
+    /**
+     * Create a new product in the database
+     *
+     * @return string JSON response
+     */
+    public function createProduct()
+    {
+        try {
+            $_POST = json_decode(file_get_contents("php://input"), true);
+
+            $productExists = $this->checkProductExists($_POST['barCode']);
+            if ($productExists) {
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Product already exists'
+                ]);
+                
+            } else {
+
+                $statement = $this->dbConnection->prepare('INSERT INTO products (Barcode, Stock, Price, Name)
+                VALUES (:barcode, :stock, :price, :name)');
+
+                $res = $statement->execute([
+                    'barcode' => $_POST['barCode'],
+                    'stock' => $_POST['stock'],
+                    'price' => $_POST['price'],
+                    'name' => $_POST['name'],
+                ]);
+
+                if (!$res) {
+                    return json_encode([
+                        'status' => '400',
+                        'message' => 'Error creating product'
+                    ]);
+                } else {
+                    return json_encode([
+                        'status' => '201',
+                        'message' => 'Product created successfully'
+                    ]);
+                }
+            }
+
+        } catch (\PDOException $e) {
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
