@@ -112,4 +112,78 @@ class ProductModel
             ]);
         }
     }
+
+    /**
+     * Update an existing product in the database
+     *
+     * @return string JSON response
+     */
+    public function updateProduct()
+    {
+        try {
+            $_POST = json_decode(file_get_contents("php://input"), true);
+            $statement = $this->dbConnection->prepare('UPDATE products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
+
+            $res = $statement->execute([
+                'stock' => $_POST['stock'],
+                'price' => $_POST['price'],
+                'name' => $_POST['name'],
+                'barcode' => $_POST['barCode']
+            ]);
+
+            if (!$res) {
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Error updating product'
+                ]);
+            } else {
+                return json_encode([
+                    'status' => '200',
+                    'message' => 'Product updated successfully'
+                ]);
+            }
+
+        } catch (\PDOException $e) {
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Delete a product from the database
+     *
+     * @return string JSON response
+     */
+    public function deleteProduct()
+    {
+        try {
+            $_POST = json_decode(file_get_contents("php://input"), true);
+            $statement = $this->dbConnection->prepare('DELETE FROM products WHERE BarCode = :barcode');
+
+            $res = $statement->execute([
+                'barcode' => $_POST['barCode']
+            ]);
+
+            if (!$res) {
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Error deleting product'
+                ]);
+            } else {
+                return json_encode([
+                    'status' => '200',
+                    'message' => 'Product deleted successfully'
+                ]);
+            }
+
+        } catch (\PDOException $e) {
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
 }

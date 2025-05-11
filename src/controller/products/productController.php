@@ -38,9 +38,9 @@ class ProductController
             case 'POST':
                 return $this->productModel->createProduct();
             case 'PUT':
-                return $this->updateProduct();
+                return $this->productModel->updateProduct();
             case 'DELETE':
-                return $this->deleteProduct();
+                return $this->productModel->deleteProduct();
             default:
                 return json_encode([
                     'status' => '400',
