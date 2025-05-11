@@ -1,6 +1,6 @@
 <?php
-namespace Src\Controller\Products;
-use Src\Model\Products\ProductModel;
+namespace Src\Controller;
+use Src\Model\ProductModel;
 
 /**
      * ApiController constructor

@@ -1,5 +1,5 @@
 <?php
-namespace Src\Model\Products;
+namespace Src\Model;
 
 class ProductModel
 {

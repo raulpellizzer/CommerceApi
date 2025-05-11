@@ -1,6 +1,6 @@
 <?php
 namespace Src\Controller;
-use Src\Controller\Products\ProductController;
+use Src\Controller\ProductController;
 
 class ApiController
 {   
