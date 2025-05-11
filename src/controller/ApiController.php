@@ -47,6 +47,17 @@ class ApiController
                 $productController = new ProductController($requestMethod, $this->dbConnection);
                 $response = $productController->processRequest();
                 return $response;
+
+            } else if($resource === 'reports') {
+                $reportController = new ReportController($requestMethod, $this->dbConnection);
+                $response = $reportController->processRequest();
+                return $response;
+                
+            } else {
+                return json_encode([
+                    'status' => '404',
+                    'message' => 'Resource not found'
+                ]);
             }
         }
     }

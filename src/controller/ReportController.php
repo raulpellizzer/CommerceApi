@@ -1,5 +1,6 @@
 <?php
 namespace Src\Controller;
+use Src\Model\ReportModel;
 
 /**
      * ReportController constructor
@@ -33,7 +34,11 @@ class ReportController
     {
         switch ($this->requestMethod) {
             case 'GET':
-                return $this->reportModel->ToBeImplemented(); // think of how to diferentiate between reports
+                return json_encode([
+                    'status' => '200',
+                    'message' => 'Reports endpoint is up'
+                ]);
+                //return $this->reportModel->ToBeImplemented(); // think of how to diferentiate between reports
             
             default:
                 return json_encode([
