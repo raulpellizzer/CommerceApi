@@ -1,20 +1,19 @@
 <?php
 namespace Src\Controller;
-use Src\Model\ProductModel;
 
 /**
-     * ProductController constructor
+     * ReportController constructor
      *
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
-     * @param object $productModel ProductModel object
+     * @param object $reportModel ReportModel object
      */
-class ProductController
+class ReportController
 {
     private $requestMethod;
-    private $productModel;
+    private $reportModel;
 
     /**
-     * ProductController constructor
+     * ReportController constructor
      *
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
@@ -22,11 +21,11 @@ class ProductController
     public function __construct($requestMethod, $dbConnection)
     {
         $this->requestMethod = $requestMethod;
-        $this->productModel = new ProductModel($dbConnection);
+        $this->reportModel = new ReportModel($dbConnection);
     }
 
     /**
-     * Process the incoming /products request
+     * Process the incoming /reports request
      *
      * @return string JSON response
      */
@@ -34,17 +33,8 @@ class ProductController
     {
         switch ($this->requestMethod) {
             case 'GET':
-                return $this->productModel->getAllProducts();
-
-            case 'POST':
-                return $this->productModel->createProduct();
-
-            case 'PUT':
-                return $this->productModel->updateProduct();
-
-            case 'DELETE':
-                return $this->productModel->deleteProduct();
-                
+                return $this->reportModel->ToBeImplemented(); // think of how to diferentiate between reports
+            
             default:
                 return json_encode([
                     'status' => '400',
@@ -52,6 +42,5 @@ class ProductController
                 ]);
         }
     }
-}
 
-    
+}
