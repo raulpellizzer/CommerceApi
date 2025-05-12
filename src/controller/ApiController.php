@@ -72,6 +72,11 @@ class ApiController
                 $response = $configController->processRequest();
                 return $response;
             
+            } else if($resource === 'sales') {
+                $saleController = new SaleController($requestMethod, $this->dbConnection);
+                $response = $saleController->processRequest();
+                return $response;
+            
             } else {
                 return json_encode([
                     'status' => '404',
