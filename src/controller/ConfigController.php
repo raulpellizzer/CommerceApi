@@ -36,6 +36,9 @@ class ConfigController
             case 'GET':
                 return $this->configModel->getConfigs();
 
+            case 'PUT':
+                return $this->configModel->updateConfig();
+
             default:
                 return json_encode([
                     'status' => '400',
