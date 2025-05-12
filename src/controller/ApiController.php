@@ -67,9 +67,10 @@ class ApiController
                     ]);
                 }
                 
-            } else if($resource === 'reports') {
+            } else if($resource === 'configs') {
                 $configController = new ConfigController($requestMethod, $this->dbConnection);
                 $response = $configController->processRequest();
+                return $response;
             
             } else {
                 return json_encode([

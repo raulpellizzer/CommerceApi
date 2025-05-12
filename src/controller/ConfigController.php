@@ -34,11 +34,7 @@ class ConfigController
     {
         switch ($this->requestMethod) {
             case 'GET':
-                //return $this->configModel->getConfigs(); // implement the method in ConfigModel
-                return json_encode([
-                    'status' => '200',
-                    'message' => 'GET config processed'
-                ]);
+                return $this->configModel->getConfigs();
 
             default:
                 return json_encode([
@@ -47,5 +43,4 @@ class ConfigController
                 ]);
         }
     }
-
 }
