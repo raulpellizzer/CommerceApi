@@ -43,23 +43,22 @@ class ApiController
         if (isset($uri[2])) {
             $resource = trim($uri[2]);
 
+            /*
+            * Example
+            * /products?stockcontrol=true
+            */
             if($resource === 'products') {
 
                 $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
-
-                if ($stockControl !== null) {
-                    $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
-                    $response = $productController->processRequest();
-
-                } else {
-                    return json_encode([
-                        'status' => '400',
-                        'message' => 'Stock control not specified'
-                    ]);
-                }
+                $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
+                $response = $productController->processRequest();
                 
                 return $response;
 
+            /*
+            * Example
+            * /reports?reporttype=Sales&begindate=2025-05-04&enddate=2025-05-12
+            */
             } else if($resource === 'reports') {
 
                 $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
