@@ -77,6 +77,11 @@ class ApiController
                 $response = $saleController->processRequest();
                 return $response;
             
+            } else if($resource === 'logs') {
+                $logController = new LogController($requestMethod, $this->dbConnection);
+                $response = $logController->processRequest();
+                return $response;
+            
             } else {
                 return json_encode([
                     'status' => '404',

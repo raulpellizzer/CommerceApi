@@ -1,20 +1,19 @@
 <?php
 namespace Src\Controller;
-use Src\Model\SaleModel;
+use Src\Model\LogModel;
 
 /**
-     * SaleController constructor
-     *
-     * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
-     * @param object $productModel ProductModel object
-     */
-class SaleController
+ * LogController class
+ *
+ * Handles the logging of API requests.
+ */
+class LogController
 {
     private $requestMethod;
-    private $saleModel;
+    private $logModel;
 
     /**
-     * SaleController constructor
+     * LogController constructor
      *
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
@@ -22,11 +21,11 @@ class SaleController
     public function __construct($requestMethod, $dbConnection)
     {
         $this->requestMethod = $requestMethod;
-        $this->saleModel = new SaleModel($dbConnection);
+        $this->logModel = new LogModel($dbConnection);
     }
 
     /**
-     * Process the incoming /sales request
+     * Process the incoming /logs request
      *
      * @return string JSON response
      */
@@ -34,7 +33,7 @@ class SaleController
     {
         switch ($this->requestMethod) {
             case 'POST':
-                return $this->saleModel->createSale();
+                return $this->logModel->logMessage();
 
             default:
                 return json_encode([
