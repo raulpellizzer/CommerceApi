@@ -23,14 +23,8 @@ class SaleModel
     public function createSale()
     {
         try {
-
             $saleData = json_decode(file_get_contents("php://input"), true);
-
-            echo $saleData['saleDate'] . "\n";
-            echo $saleData['total'] . "\n";
-            die();
-
-            //var_dump($saleData);
+            $this->dbConnection->beginTransaction();
 
             // Get next SaleId
             $stmt = $this->dbConnection->prepare('SELECT MAX(SaleId) as MaxSaleId FROM Sales');
@@ -46,22 +40,36 @@ class SaleModel
                 'saleDate' => $saleData['saleDate']
             ]);
 
-            // continue here to SaleDetails - wip
-
-
-
-
-
-
-
-
-
-
-
+            // Insert to SaleDetails table
+            foreach ($saleData['ProductCart'] as $product) {
+                $stmt = $this->dbConnection->prepare('INSERT INTO SaleDetails (SaleId, ProductId, ProductQuantity) VALUES (:saleId, :productId, :productQuantity)');
+                $stmt->execute([
+                    'saleId' => $nextSaleId,
+                    'productId' => $product['id'],
+                    'productQuantity' => $product['quantity']
+                ]);
+            }
             
+            // Update product stock
+            if($saleData['updateStock'] === 'True') {
+                foreach ($saleData['sellStockUpdate'] as $productToUpdate) {
+
+                    $stmt = $this->dbConnection->prepare('UPDATE Products SET Stock = Stock - :productQuantity WHERE BarCode = :barCode');
+                    $stmt->execute([
+                        'productQuantity' => $productToUpdate['value'],
+                        'barCode' => $productToUpdate['barCodeKey']
+                    ]);
+                }
+            }
             
+            $this->dbConnection->commit();
+            return json_encode([
+                'status' => '200',
+                'message' => 'Sale created successfully',
+            ]);
 
         } catch (\PDOException $e) {
+            $this->dbConnection->rollBack();
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()
