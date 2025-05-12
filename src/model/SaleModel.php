@@ -24,45 +24,41 @@ class SaleModel
     {
         try {
 
-            
+            $saleData = json_decode(file_get_contents("php://input"), true);
 
+            echo $saleData['saleDate'] . "\n";
+            echo $saleData['total'] . "\n";
+            die();
 
+            //var_dump($saleData);
 
+            // Get next SaleId
+            $stmt = $this->dbConnection->prepare('SELECT MAX(SaleId) as MaxSaleId FROM Sales');
+            $stmt->execute();
+            $saleId = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $nextSaleId = $saleId[0]['MaxSaleId'] + 1;
 
-
-
-
-
-
-
-
-
-
-
-
-            // Assuming you have a POST request with sale data
-            $data = json_decode(file_get_contents("php://input"), true);
-            $productId = $data['product_id'];
-            $quantity = $data['quantity'];
-
-            // Insert sale into the database
-            $sql = 'INSERT INTO sales (product_id, quantity) VALUES (:product_id, :quantity)';
-            $stmt = $this->dbConnection->prepare($sql);
-            $stmt->bindParam(':product_id', $productId);
-            $stmt->bindParam(':quantity', $quantity);
-            $res = $stmt->execute();
-
-            if (!$res) {
-                return json_encode([
-                    'status' => '400',
-                    'message' => 'Error creating sale'
-                ]);
-            }
-
-            return json_encode([
-                'status' => '200',
-                'message' => 'Sale created successfully'
+            // Insert to Sales table
+            $stmt = $this->dbConnection->prepare('INSERT INTO Sales (SaleId, Total, SaleDate) VALUES (:saleId, :totalValue, :saleDate)');
+            $stmt->execute([
+                'saleId' => $nextSaleId,
+                'totalValue' => $saleData['total'],
+                'saleDate' => $saleData['saleDate']
             ]);
+
+            // continue here to SaleDetails - wip
+
+
+
+
+
+
+
+
+
+
+
+            
             
 
         } catch (\PDOException $e) {
