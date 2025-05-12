@@ -23,4 +23,3 @@
 	$response = $apiController->processRequest($requestMethod, $uri);
 
 	echo $response;
-	return $response;

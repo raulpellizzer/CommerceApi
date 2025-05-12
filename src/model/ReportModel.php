@@ -60,6 +60,7 @@ class ReportModel
                     break;
 
                 default:
+                    http_response_code(400);
                     return json_encode([
                         'status' => '400',
                         'message' => 'Invalid report type'
@@ -74,13 +75,11 @@ class ReportModel
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             if ($statement->rowCount() > 0) {
-                return json_encode([
-                    'status' => '200',
-                    'message' => 'Report data found',
-                    'data' => $result
-                ]);
+                http_response_code(200);
+                return json_encode($result);
 
             } else {
+                http_response_code(404);
                 return json_encode([
                     'status' => '404',
                     'message' => 'No report data found for the given dates'
@@ -88,6 +87,7 @@ class ReportModel
             }
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()

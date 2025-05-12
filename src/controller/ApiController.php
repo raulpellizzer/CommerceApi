@@ -83,6 +83,7 @@ class ApiController
                 return $response;
             
             } else {
+                http_response_code(404);
                 return json_encode([
                     'status' => '404',
                     'message' => 'Resource not found'

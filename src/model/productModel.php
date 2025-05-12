@@ -36,19 +36,18 @@ class ProductModel
             $res = $stmt->execute();
 
             if (!$res) {
+                http_response_code(400);
                 return json_encode([
                     'status' => '400',
                     'message' => 'Error fetching products'
                 ]);
             }
 
-            return json_encode([
-                'status' => '200',
-                'message' => 'Products found',
-                'data' => $stmt->fetchAll(\PDO::FETCH_ASSOC)
-            ]);
+            http_response_code(200);
+            return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()
@@ -71,6 +70,7 @@ class ProductModel
             return $statement->rowCount() > 0;
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()
@@ -90,6 +90,7 @@ class ProductModel
 
             $productExists = $this->checkProductExists($_POST['barCode']);
             if ($productExists) {
+                http_response_code(400);
                 return json_encode([
                     'status' => '400',
                     'message' => 'Product already exists'
@@ -108,11 +109,13 @@ class ProductModel
                 ]);
 
                 if (!$res) {
+                    http_response_code(400);
                     return json_encode([
                         'status' => '400',
                         'message' => 'Error creating product'
                     ]);
                 } else {
+                    http_response_code(201);
                     return json_encode([
                         'status' => '201',
                         'message' => 'Product created successfully'
@@ -121,6 +124,7 @@ class ProductModel
             }
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()
@@ -147,11 +151,13 @@ class ProductModel
             ]);
 
             if (!$res) {
+                http_response_code(400);
                 return json_encode([
                     'status' => '400',
                     'message' => 'Error updating product'
                 ]);
             } else {
+                http_response_code(200);
                 return json_encode([
                     'status' => '200',
                     'message' => 'Product updated successfully'
@@ -159,6 +165,7 @@ class ProductModel
             }
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()
@@ -182,11 +189,13 @@ class ProductModel
             ]);
 
             if (!$res) {
+                http_response_code(400);
                 return json_encode([
                     'status' => '400',
                     'message' => 'Error deleting product'
                 ]);
             } else {
+                http_response_code(200);
                 return json_encode([
                     'status' => '200',
                     'message' => 'Product deleted successfully'
@@ -194,6 +203,7 @@ class ProductModel
             }
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()

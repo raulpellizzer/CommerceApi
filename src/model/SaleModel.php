@@ -63,6 +63,7 @@ class SaleModel
             }
             
             $this->dbConnection->commit();
+            http_response_code(200);
             return json_encode([
                 'status' => '200',
                 'message' => 'Sale created successfully',
@@ -70,6 +71,7 @@ class SaleModel
 
         } catch (\PDOException $e) {
             $this->dbConnection->rollBack();
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()

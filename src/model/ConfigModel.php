@@ -28,19 +28,18 @@ class ConfigModel
             $res = $stmt->execute();
 
             if (!$res) {
+                http_response_code(400);
                 return json_encode([
                     'status' => '400',
                     'message' => 'Error fetching settings'
                 ]);
             }
 
-            return json_encode([
-                'status' => '200',
-                'message' => 'Settings found',
-                'data' => $stmt->fetchAll(\PDO::FETCH_ASSOC)
-            ]);
+            http_response_code(200);
+            return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()
@@ -68,6 +67,7 @@ class ConfigModel
             }
 
             $this->dbConnection->commit();
+            http_response_code(200);
             return json_encode([
                 'status' => '200',
                 'message' => 'Settings updated successfully'
@@ -75,6 +75,7 @@ class ConfigModel
 
         } catch (\PDOException $e) {
             $this->dbConnection->rollBack();
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Database connection error: ' . $e->getMessage()

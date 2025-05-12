@@ -38,11 +38,13 @@ class LogModel
             ]);
 
             if (!$res) {
+                http_response_code(400);
                 return json_encode([
                     'status' => '400',
                     'message' => 'Error creating log entry'
                 ]);
             } else {
+                http_response_code(200);
                 return json_encode([
                     'status' => '200',
                     'message' => 'Log entry created successfully'
@@ -50,6 +52,7 @@ class LogModel
             }
 
         } catch (\PDOException $e) {
+            http_response_code(500);
             return json_encode([
                 'status' => '500',
                 'message' => 'Error creating log entry: ' . $e->getMessage()
