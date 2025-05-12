@@ -4,15 +4,18 @@ namespace Src\Model;
 class ProductModel
 {
     private $dbConnection;
+    private $stockControl;
 
     /**
      * ProductModel constructor
      *
      * @param object $dbConnection Database connection object
+     * @param string $stockControl Stock control parameter
      */
-    public function __construct($dbConnection)
+    public function __construct($dbConnection, $stockControl)
     {
         $this->dbConnection = $dbConnection;
+        $this->stockControl = $stockControl;
     }
 
     /**
@@ -23,7 +26,12 @@ class ProductModel
     public function getAllProducts()
     {
         try {
-            $sql = 'SELECT * FROM products';
+            if ($this->stockControl === 'true') {
+                $sql = 'SELECT * FROM products WHERE Stock > 0';
+            } else {
+                $sql = 'SELECT * FROM products';
+            }
+
             $stmt = $this->dbConnection->prepare($sql);
             $res = $stmt->execute();
 
