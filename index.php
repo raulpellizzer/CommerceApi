@@ -21,8 +21,6 @@
 
 	$apiController = new ApiController($dbConnection);
 	$response = $apiController->processRequest($requestMethod, $uri);
-	
-	// return here response to client
-	echo "INDEX: \n\n";
+
 	echo $response;
-	
+	return $response;

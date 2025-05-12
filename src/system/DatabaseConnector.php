@@ -40,11 +40,6 @@ class DatabaseConnector
 
         return $this->dbConnection;
     }
-
-    function closeConnection()
-    {
-        $this->dbConnection = null;
-    }
 }
 
 
