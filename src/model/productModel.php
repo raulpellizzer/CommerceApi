@@ -55,12 +55,19 @@ class ProductModel
      */
     private function checkProductExists($barcode)
     {
-        $statement = $this->dbConnection->prepare('SELECT * FROM products WHERE Barcode = :barcode');
-        $statement->execute([
-            'barcode' => $barcode
-        ]);
+        try {
+            $statement = $this->dbConnection->prepare('SELECT * FROM products WHERE Barcode = :barcode');
+            $statement->execute([
+                'barcode' => $barcode
+            ]);
+            return $statement->rowCount() > 0;
 
-        return $statement->rowCount() > 0;
+        } catch (\PDOException $e) {
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -185,5 +192,4 @@ class ProductModel
             ]);
         }
     }
-
 }

@@ -49,9 +49,21 @@ class ApiController
                 return $response;
 
             } else if($resource === 'reports') {
-                $reportController = new ReportController($requestMethod, $this->dbConnection);
-                $response = $reportController->processRequest();
-                return $response;
+
+                $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
+                $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
+                $endDate = isset($_GET['enddate']) ? $_GET['enddate'] : null;
+
+                if ($reportType !== null && $beginDate !== null && $endDate !== null) {
+                    $reportController = new ReportController($requestMethod, $this->dbConnection, $reportType, $beginDate, $endDate);
+                    $response = $reportController->processRequest();
+                    return $response;
+                } else {
+                    return json_encode([
+                        'status' => '400',
+                        'message' => 'Report types or dates not specified'
+                    ]);
+                }
                 
             } else {
                 return json_encode([

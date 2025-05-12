@@ -18,15 +18,18 @@ class ReportController
      *
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
+     * @param string $reportType Type of report to generate
+     * @param string $beginDate Start date for the report
+     * @param string $endDate End date for the report
      */
-    public function __construct($requestMethod, $dbConnection)
+    public function __construct($requestMethod, $dbConnection, $reportType, $beginDate, $endDate)
     {
         $this->requestMethod = $requestMethod;
-        $this->reportModel = new ReportModel($dbConnection);
+        $this->reportModel = new ReportModel($dbConnection, $reportType, $beginDate, $endDate);
     }
 
     /**
-     * Process the incoming /reports request
+     * Process the incoming /reports?reporttype=abcd request
      *
      * @return string JSON response
      */
@@ -34,12 +37,8 @@ class ReportController
     {
         switch ($this->requestMethod) {
             case 'GET':
-                return json_encode([
-                    'status' => '200',
-                    'message' => 'Reports endpoint is up'
-                ]);
-                //return $this->reportModel->ToBeImplemented(); // think of how to diferentiate between reports
-            
+                return $this->reportModel->getReportData();
+
             default:
                 return json_encode([
                     'status' => '400',
@@ -47,5 +46,4 @@ class ReportController
                 ]);
         }
     }
-
 }
