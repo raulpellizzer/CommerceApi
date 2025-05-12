@@ -1,33 +1,32 @@
 <?php
 namespace Src\Controller;
-use Src\Model\ProductModel;
+use Src\Model\ConfigModel;
 
 /**
-     * ProductController constructor
+     * ConfigController constructor
      *
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $productModel ProductModel object
      */
-class ProductController
+class ConfigController
 {
     private $requestMethod;
-    private $productModel;
+    private $configModel;
 
     /**
-     * ProductController constructor
+     * ConfigController constructor
      *
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
-     * @param string $stockControl Stock control parameter
      */
-    public function __construct($requestMethod, $dbConnection, $stockControl)
+    public function __construct($requestMethod, $dbConnection)
     {
         $this->requestMethod = $requestMethod;
-        $this->productModel = new ProductModel($dbConnection, $stockControl);
+        $this->configModel = new ConfigModel($dbConnection);
     }
 
     /**
-     * Process the incoming /products?stockcontrol=true request
+     * Process the incoming /configs request
      *
      * @return string JSON response
      */
@@ -35,17 +34,12 @@ class ProductController
     {
         switch ($this->requestMethod) {
             case 'GET':
-                return $this->productModel->getAllProducts();
+                //return $this->configModel->getConfigs(); // implement the method in ConfigModel
+                return json_encode([
+                    'status' => '200',
+                    'message' => 'GET config processed'
+                ]);
 
-            case 'POST':
-                return $this->productModel->createProduct();
-
-            case 'PUT':
-                return $this->productModel->updateProduct();
-
-            case 'DELETE':
-                return $this->productModel->deleteProduct();
-                
             default:
                 return json_encode([
                     'status' => '400',
@@ -53,6 +47,5 @@ class ProductController
                 ]);
         }
     }
-}
 
-    
+}

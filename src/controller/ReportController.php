@@ -29,7 +29,7 @@ class ReportController
     }
 
     /**
-     * Process the incoming /reports?reporttype=abcd request
+     * Process the incoming /reports?reporttype=Sales&begindate=2025-05-04&enddate=2025-05-12 request
      *
      * @return string JSON response
      */

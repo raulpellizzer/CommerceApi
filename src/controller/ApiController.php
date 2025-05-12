@@ -43,24 +43,14 @@ class ApiController
         if (isset($uri[2])) {
             $resource = trim($uri[2]);
 
-            /*
-            * Example
-            * /products?stockcontrol=true
-            */
             if($resource === 'products') {
-
                 $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
                 $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
                 $response = $productController->processRequest();
                 
                 return $response;
 
-            /*
-            * Example
-            * /reports?reporttype=Sales&begindate=2025-05-04&enddate=2025-05-12
-            */
             } else if($resource === 'reports') {
-
                 $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
                 $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
                 $endDate = isset($_GET['enddate']) ? $_GET['enddate'] : null;
@@ -77,6 +67,10 @@ class ApiController
                     ]);
                 }
                 
+            } else if($resource === 'reports') {
+                $configController = new ConfigController($requestMethod, $this->dbConnection);
+                $response = $configController->processRequest();
+            
             } else {
                 return json_encode([
                     'status' => '404',
