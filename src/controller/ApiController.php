@@ -24,7 +24,7 @@ class ApiController
     public function EndPointIsUp()
     {
         return json_encode([
-            'status' => 'ok',
+            'status' => '200',
             'message' => 'API is up and running'
         ]);
     }
@@ -80,6 +80,10 @@ class ApiController
             } else if($resource === 'logs') {
                 $logController = new LogController($requestMethod, $this->dbConnection);
                 $response = $logController->processRequest();
+                return $response;
+            
+            } else if(Trim($resource) === '') {
+                $response = $this->EndPointIsUp();
                 return $response;
             
             } else {
