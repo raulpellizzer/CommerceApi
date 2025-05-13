@@ -41,27 +41,26 @@ class SaleModel
             ]);
 
             // Insert to SaleDetails table
-            foreach ($saleData['ProductCart'] as $product) {
+            foreach ($saleData['productCart'] as $product) {
                 $stmt = $this->dbConnection->prepare('INSERT INTO SaleDetails (SaleId, ProductId, ProductQuantity) VALUES (:saleId, :productId, :productQuantity)');
                 $stmt->execute([
                     'saleId' => $nextSaleId,
-                    'productId' => $product['id'],
+                    'productId' => $product['productId'],
                     'productQuantity' => $product['quantity']
                 ]);
             }
-            
+
             // Update product stock
             if($saleData['updateStock'] === 'True') {
-                foreach ($saleData['sellStockUpdate'] as $productToUpdate) {
-
+                foreach ( array_keys($saleData['sellStockUpdate']) as $key ) {
                     $stmt = $this->dbConnection->prepare('UPDATE Products SET Stock = Stock - :productQuantity WHERE BarCode = :barCode');
                     $stmt->execute([
-                        'productQuantity' => $productToUpdate['value'],
-                        'barCode' => $productToUpdate['barCodeKey']
+                        'productQuantity' => $saleData['sellStockUpdate'][$key],
+                        'barCode' => $key
                     ]);
                 }
             }
-            
+
             $this->dbConnection->commit();
             http_response_code(200);
             return json_encode([
