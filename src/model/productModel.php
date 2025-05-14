@@ -1,5 +1,6 @@
 <?php
 namespace Src\Model;
+require_once __DIR__ . '/LogModel.php';
 
 class ProductModel
 {
@@ -16,6 +17,7 @@ class ProductModel
     {
         $this->dbConnection = $dbConnection;
         $this->stockControl = $stockControl;
+        $this->logger = new LogModel($this->dbConnection);
     }
 
     /**
@@ -47,6 +49,18 @@ class ProductModel
             return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
 
         } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Product'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',
@@ -115,6 +129,18 @@ class ProductModel
                         'message' => 'Error creating product'
                     ]);
                 } else {
+
+                    $this->logger->logMessage([
+                        'currentDateTime' => date('Y-m-d H:i:s'),
+                        'file' => __CLASS__,
+                        'function' => __FUNCTION__,
+                        'message' => 'Creating Product',
+                        'args' => 'barCode: ' . $_POST['barCode'] . ', stock: ' . $_POST['stock'] . ', price: ' . $_POST['price'] . ', name: ' . $_POST['name'],
+                        'stackTrace' => null,
+                        'type' => 'Info',
+                        'category' => 'Product'
+                    ]);
+
                     http_response_code(201);
                     return json_encode([
                         'status' => '201',
@@ -124,6 +150,18 @@ class ProductModel
             }
 
         } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Product'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',
@@ -157,6 +195,18 @@ class ProductModel
                     'message' => 'Error updating product'
                 ]);
             } else {
+
+                $this->logger->logMessage([
+                    'currentDateTime' => date('Y-m-d H:i:s'),
+                    'file' => __CLASS__,
+                    'function' => __FUNCTION__,
+                    'message' => 'Updating Product',
+                    'args' => 'stock: ' . $_POST['stock'] . ', price: ' . $_POST['price'] . ', name: ' . $_POST['name'] . ', barcode: ' . $_POST['barCode'],
+                    'stackTrace' => null,
+                    'type' => 'Info',
+                    'category' => 'Product'
+                ]);
+
                 http_response_code(200);
                 return json_encode([
                     'status' => '200',
@@ -165,6 +215,18 @@ class ProductModel
             }
 
         } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Product'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',
@@ -195,6 +257,18 @@ class ProductModel
                     'message' => 'Error deleting product'
                 ]);
             } else {
+
+                $this->logger->logMessage([
+                    'currentDateTime' => date('Y-m-d H:i:s'),
+                    'file' => __CLASS__,
+                    'function' => __FUNCTION__,
+                    'message' => 'Deleting Product',
+                    'args' => 'barCode: ' . $_POST['barCode'],
+                    'stackTrace' => null,
+                    'type' => 'Info',
+                    'category' => 'Product'
+                ]);
+
                 http_response_code(200);
                 return json_encode([
                     'status' => '200',
@@ -203,6 +277,18 @@ class ProductModel
             }
 
         } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Product'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',

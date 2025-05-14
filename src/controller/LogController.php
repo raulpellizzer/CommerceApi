@@ -25,21 +25,16 @@ class LogController
     }
 
     /**
-     * Process the incoming /logs request
+     * Process the incoming /logs request. Disabled external access to this endpoint.
      *
      * @return string JSON response
      */
     public function processRequest()
     {
-        switch ($this->requestMethod) {
-            case 'POST':
-                return $this->logModel->logMessage();
-
-            default:
-                return json_encode([
-                    'status' => '400',
-                    'message' => 'Invalid request method'
-                ]);
-        }
+        // Disable external access to this endpoint
+        return json_encode([
+            'status' => '400',
+            'message' => 'Invalid request method'
+        ]);
     }
 }

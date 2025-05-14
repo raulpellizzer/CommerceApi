@@ -1,5 +1,6 @@
 <?php
 namespace Src\Model;
+require_once __DIR__ . '/LogModel.php';
 
 class ReportModel 
 {
@@ -19,6 +20,7 @@ class ReportModel
         $this->reportType = $reportType;
         $this->beginDate = $beginDate;
         $this->endDate = $endDate;
+        $this->logger = new LogModel($this->dbConnection);
     }
 
     /**
@@ -87,6 +89,18 @@ class ReportModel
             }
 
         } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => 'beginDate: ' . $this->beginDate . ', endDate: ' . $this->endDate,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Report'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',

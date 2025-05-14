@@ -20,11 +20,9 @@ class LogModel
      *
      * @return string JSON response
      */
-    public function logMessage()
+    public function logMessage($logData)
     {
         try {
-            $logData = json_decode(file_get_contents("php://input"), true);
-
             $stmt = $this->dbConnection->prepare('INSERT INTO Logs (ExecutionTime, File, Function, Message, Args, StackTrace, Type, Category) VALUES (:logDate, :fileName, :functionName, :logMessage, :args, :stackTrace, :type, :category)');
             $res = $stmt->execute([
                 'logDate' => $logData['currentDateTime'],

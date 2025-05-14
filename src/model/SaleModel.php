@@ -1,5 +1,6 @@
 <?php
 namespace Src\Model;
+require_once __DIR__ . '/LogModel.php';
 
 class SaleModel
 {
@@ -13,6 +14,7 @@ class SaleModel
     public function __construct($dbConnection)
     {
         $this->dbConnection = $dbConnection;
+        $this->logger = new LogModel($this->dbConnection);
     }
 
     /**
@@ -61,6 +63,17 @@ class SaleModel
                 }
             }
 
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => 'New Sale',
+                'args' => print_r($saleData, true),
+                'stackTrace' => null,
+                'type' => 'Info',
+                'category' => 'Sale'
+            ]);
+
             $this->dbConnection->commit();
             http_response_code(200);
             return json_encode([
@@ -70,6 +83,18 @@ class SaleModel
 
         } catch (\PDOException $e) {
             $this->dbConnection->rollBack();
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => print_r($saleData, true),
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Sale'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',

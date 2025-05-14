@@ -1,5 +1,6 @@
 <?php
 namespace Src\Model;
+require_once __DIR__ . '/LogModel.php';
 
 class ConfigModel
 {
@@ -13,6 +14,7 @@ class ConfigModel
     public function __construct($dbConnection)
     {
         $this->dbConnection = $dbConnection;
+        $this->logger = new LogModel($this->dbConnection);
     }
 
     /**
@@ -39,6 +41,18 @@ class ConfigModel
             return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
 
         } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Config'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',
@@ -66,6 +80,17 @@ class ConfigModel
                 ]);
             }
 
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => 'Saved settings successfully',
+                'args' => print_r($data, true),
+                'stackTrace' => null,
+                'type' => 'Info',
+                'category' => 'Config'
+            ]);
+
             $this->dbConnection->commit();
             http_response_code(200);
             return json_encode([
@@ -75,6 +100,18 @@ class ConfigModel
 
         } catch (\PDOException $e) {
             $this->dbConnection->rollBack();
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Config'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',
