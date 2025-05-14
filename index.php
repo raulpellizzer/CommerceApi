@@ -6,6 +6,7 @@
 	header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 	require "bootstrap.php";
+	//require_once __DIR__ . '/Src/Controller/ApiController.php'; // required for web server if autoload is not working
 	use Src\Controller\ApiController;
 
 	$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

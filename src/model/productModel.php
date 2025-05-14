@@ -27,9 +27,9 @@ class ProductModel
     {
         try {
             if ($this->stockControl === 'true') {
-                $sql = 'SELECT * FROM products WHERE Stock > 0';
+                $sql = 'SELECT * FROM Products WHERE Stock > 0';
             } else {
-                $sql = 'SELECT * FROM products';
+                $sql = 'SELECT * FROM Products';
             }
 
             $stmt = $this->dbConnection->prepare($sql);
@@ -63,7 +63,7 @@ class ProductModel
     private function checkProductExists($barcode)
     {
         try {
-            $statement = $this->dbConnection->prepare('SELECT * FROM products WHERE Barcode = :barcode');
+            $statement = $this->dbConnection->prepare('SELECT * FROM Products WHERE Barcode = :barcode');
             $statement->execute([
                 'barcode' => $barcode
             ]);
@@ -98,7 +98,7 @@ class ProductModel
                 
             } else {
 
-                $statement = $this->dbConnection->prepare('INSERT INTO products (Barcode, Stock, Price, Name)
+                $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
                 VALUES (:barcode, :stock, :price, :name)');
 
                 $res = $statement->execute([
@@ -141,7 +141,7 @@ class ProductModel
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
-            $statement = $this->dbConnection->prepare('UPDATE products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
+            $statement = $this->dbConnection->prepare('UPDATE Products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
 
             $res = $statement->execute([
                 'stock' => $_POST['stock'],
@@ -182,7 +182,7 @@ class ProductModel
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
-            $statement = $this->dbConnection->prepare('DELETE FROM products WHERE BarCode = :barcode');
+            $statement = $this->dbConnection->prepare('DELETE FROM Products WHERE BarCode = :barcode');
 
             $res = $statement->execute([
                 'barcode' => $_POST['barCode']
