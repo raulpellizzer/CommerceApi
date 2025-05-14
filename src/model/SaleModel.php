@@ -18,6 +18,49 @@ class SaleModel
     }
 
     /**
+     * Get the last sale from the database
+     *
+     * @return string JSON response
+     */
+    public function getLastSale() {
+        try {
+            $stmt = $this->dbConnection->prepare('SELECT SaleId, Total, SaleDate FROM Sales ORDER BY SaleId DESC LIMIT 1');
+            $stmt->execute();
+            $lastSale = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($lastSale)) {
+                http_response_code(404);
+                return json_encode([
+                    'status' => '404',
+                    'message' => 'No sales found'
+                ]);
+            }
+
+            http_response_code(200);
+            return json_encode($lastSale);
+
+        } catch (\PDOException $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Sale'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Create a new sale in the database
      *
      * @return string JSON response

@@ -33,6 +33,9 @@ class SaleController
     public function processRequest()
     {
         switch ($this->requestMethod) {
+            case 'GET':
+                return $this->saleModel->getLastSale();
+
             case 'POST':
                 return $this->saleModel->createSale();
 
