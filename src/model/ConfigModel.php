@@ -75,8 +75,8 @@ class ConfigModel
             foreach($data as $itemConfig) { 
                 $statement = $this->dbConnection->prepare('UPDATE Configuration SET ConfigValue = :configValue WHERE ConfigDescription = :configDescription');
                 $statement->execute([
-                    'configValue' => $itemConfig['configValue'],
-                    'configDescription' => $itemConfig['configDescription']
+                    'configValue' => $itemConfig['ConfigValue'],
+                    'configDescription' => $itemConfig['ConfigDescription']
                 ]);
             }
 

@@ -81,26 +81,26 @@ class SaleModel
             $stmt = $this->dbConnection->prepare('INSERT INTO Sales (SaleId, Total, SaleDate) VALUES (:saleId, :totalValue, :saleDate)');
             $stmt->execute([
                 'saleId' => $nextSaleId,
-                'totalValue' => $saleData['total'],
-                'saleDate' => $saleData['saleDate']
+                'totalValue' => $saleData['Total'],
+                'saleDate' => $saleData['SaleDate']
             ]);
 
             // Insert to SaleDetails table
-            foreach ($saleData['productCart'] as $product) {
+            foreach ($saleData['ProductCart'] as $product) {
                 $stmt = $this->dbConnection->prepare('INSERT INTO SaleDetails (SaleId, ProductId, ProductQuantity) VALUES (:saleId, :productId, :productQuantity)');
                 $stmt->execute([
                     'saleId' => $nextSaleId,
-                    'productId' => $product['productId'],
-                    'productQuantity' => $product['quantity']
+                    'productId' => $product['ProductId'],
+                    'productQuantity' => $product['Quantity']
                 ]);
             }
 
             // Update product stock
-            if($saleData['updateStock'] === 'True') {
-                foreach ( array_keys($saleData['sellStockUpdate']) as $key ) {
+            if($saleData['UpdateStock'] === 'True') {
+                foreach ( array_keys($saleData['SellStockUpdate']) as $key ) {
                     $stmt = $this->dbConnection->prepare('UPDATE Products SET Stock = Stock - :productQuantity WHERE BarCode = :barCode');
                     $stmt->execute([
-                        'productQuantity' => $saleData['sellStockUpdate'][$key],
+                        'productQuantity' => $saleData['SellStockUpdate'][$key],
                         'barCode' => $key
                     ]);
                 }

@@ -102,7 +102,7 @@ class ProductModel
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
 
-            $productExists = $this->checkProductExists($_POST['barCode']);
+            $productExists = $this->checkProductExists($_POST['BarCode']);
             if ($productExists) {
                 http_response_code(400);
                 return json_encode([
@@ -116,10 +116,10 @@ class ProductModel
                 VALUES (:barcode, :stock, :price, :name)');
 
                 $res = $statement->execute([
-                    'barcode' => $_POST['barCode'],
-                    'stock' => $_POST['stock'],
-                    'price' => $_POST['price'],
-                    'name' => $_POST['name'],
+                    'barcode' => $_POST['BarCode'],
+                    'stock' => $_POST['Stock'],
+                    'price' => $_POST['Price'],
+                    'name' => $_POST['Name'],
                 ]);
 
                 if (!$res) {
@@ -135,7 +135,7 @@ class ProductModel
                         'file' => __CLASS__,
                         'function' => __FUNCTION__,
                         'message' => 'Creating Product',
-                        'args' => 'barCode: ' . $_POST['barCode'] . ', stock: ' . $_POST['stock'] . ', price: ' . $_POST['price'] . ', name: ' . $_POST['name'],
+                        'args' => 'barCode: ' . $_POST['BarCode'] . ', stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'],
                         'stackTrace' => null,
                         'type' => 'Info',
                         'category' => 'Product'
@@ -182,10 +182,10 @@ class ProductModel
             $statement = $this->dbConnection->prepare('UPDATE Products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
 
             $res = $statement->execute([
-                'stock' => $_POST['stock'],
-                'price' => $_POST['price'],
-                'name' => $_POST['name'],
-                'barcode' => $_POST['barCode']
+                'stock' => $_POST['Stock'],
+                'price' => $_POST['Price'],
+                'name' => $_POST['Name'],
+                'barcode' => $_POST['BarCode']
             ]);
 
             if (!$res) {
@@ -201,7 +201,7 @@ class ProductModel
                     'file' => __CLASS__,
                     'function' => __FUNCTION__,
                     'message' => 'Updating Product',
-                    'args' => 'stock: ' . $_POST['stock'] . ', price: ' . $_POST['price'] . ', name: ' . $_POST['name'] . ', barcode: ' . $_POST['barCode'],
+                    'args' => 'stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'] . ', barcode: ' . $_POST['BarCode'],
                     'stackTrace' => null,
                     'type' => 'Info',
                     'category' => 'Product'
@@ -247,7 +247,7 @@ class ProductModel
             $statement = $this->dbConnection->prepare('DELETE FROM Products WHERE BarCode = :barcode');
 
             $res = $statement->execute([
-                'barcode' => $_POST['barCode']
+                'barcode' => $_POST['BarCode']
             ]);
 
             if (!$res) {
@@ -263,7 +263,7 @@ class ProductModel
                     'file' => __CLASS__,
                     'function' => __FUNCTION__,
                     'message' => 'Deleting Product',
-                    'args' => 'barCode: ' . $_POST['barCode'],
+                    'args' => 'barCode: ' . $_POST['BarCode'],
                     'stackTrace' => null,
                     'type' => 'Info',
                     'category' => 'Product'
