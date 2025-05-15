@@ -36,7 +36,8 @@ class UserModel
             'password' => $this->pass
         ]);
 
-        if ($statement->rowCount() > 0) {
+        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        if ($statement->rowCount() > 0 && $rows[0]['IsActive'] == 1) {
             return true;
         } else {
             return false;
