@@ -1,6 +1,6 @@
 <?php
 namespace Src\Model;
-require_once __DIR__ . '/LogModel.php';
+//require_once __DIR__ . '/LogModel.php';
 
 class SaleModel
 {

@@ -20,7 +20,7 @@
 
 	$requestMethod = $_SERVER["REQUEST_METHOD"];
 
-	$apiController = new ApiController($dbConnection);
+	$apiController = new ApiController($dbConnection, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 	$response = $apiController->processRequest($requestMethod, $uri);
 
 	echo $response;
