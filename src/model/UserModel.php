@@ -51,7 +51,7 @@ class UserModel
      */
     public function getUserDatabase($authUser)
     {
-        $query = "SELECT DbName FROM CommApiUsers WHERE Username = :username";
+        $query = "SELECT TenantDbName FROM CommApiUsers WHERE Username = :username";
         $statement = $this->dbConnection->prepare($query);
 
         $res = $statement->execute([
