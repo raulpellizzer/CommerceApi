@@ -5,7 +5,6 @@ class DatabaseConnector
 {
     private $dbConnection = null;
     private $host;
-    private $port;
     private $db;
     private $user;
     private $pass;
@@ -13,7 +12,6 @@ class DatabaseConnector
     public function __construct()
     {
         $this->host = $_ENV['DB_HOST'];
-        //$this->port = $_ENV['DB_PORT'];
         $this->db   = $_ENV['DB_NAME'];
         $this->user = $_ENV['DB_USER'];
         $this->pass = $_ENV['DB_PASSWORD'];
@@ -32,15 +30,32 @@ class DatabaseConnector
         }
     }
 
-    function getConnection()
+    /**
+     * Get the database connection
+     *
+     * Handles connection to the database between Api Auth DB and User DB.
+     * CommerceApiUsers db is responsible for authentication and user database name.
+     * $database is the database name to connect to the user's database.
+     * First connection is to the auth database (CommerceApiUsers) to check user authentication. Once authenticated, the database name is retrieved for the given auth user.
+     * Second connection ($this->dbConnection->getConnection(...)) ($database not null) is to the user's database (e.g. userModel->getUserDatabase($_SERVER['PHP_AUTH_USER'])) to perform operations.
+     * 
+     * @param string|null $database The database name to connect to
+     * @return \PDO|null The database connection object
+     */
+    function getConnection($database)
     {
-        if ($this->dbConnection === null) {
-            $this->connect($this->host, $this->db, $this->user, $this->pass);
-        }
+        if ($database === null) {
 
+            if ($this->dbConnection === null) {
+                $this->connect($this->host, $this->db, $this->user, $this->pass);
+            }
+
+        } else {
+            if ($this->dbConnection === null) {
+                $this->connect($this->host, $database, $this->user, $this->pass);
+            }
+        }
+        
         return $this->dbConnection;
     }
 }
-
-
-    

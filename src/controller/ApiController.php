@@ -2,6 +2,7 @@
 namespace Src\Controller;
 use Src\Controller\ProductController;
 use Src\Model\UserModel;
+use Src\System;
 
 class ApiController
 {   
@@ -51,6 +52,9 @@ class ApiController
             ]);
 
         } else {
+
+            $this->connectTenantDb();
+
             if (isset($uri[2])) {
                 $resource = trim($uri[2]);
 
@@ -106,5 +110,19 @@ class ApiController
                 }
             }
         }
+    }
+
+    /**
+     * Connect to the tenant database
+     * Designed for multi tenant architecture.
+     *
+     * @return void
+     */
+    public function connectTenantDb() {
+        $dbName = $this->userModel->getUserDatabase($_SERVER['PHP_AUTH_USER']);
+
+        $this->dbConnection = null;
+        $this->dbConnection = new System\DatabaseConnector();
+        $this->dbConnection = $this->dbConnection->getConnection($dbName['DbName']);
     }
 }

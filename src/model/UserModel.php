@@ -28,7 +28,7 @@ class UserModel
      */
     public function authenticate()
     {
-        $query = "SELECT * FROM ApiUsers WHERE Username = :username AND Pass = :password";
+        $query = "SELECT * FROM CommApiUsers WHERE Username = :username AND Pass = :password";
         $statement = $this->dbConnection->prepare($query);
 
         $res = $statement->execute([
@@ -41,6 +41,28 @@ class UserModel
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * Get user database name to connect to client's database
+     *
+     * @return array User database name
+     */
+    public function getUserDatabase($authUser)
+    {
+        $query = "SELECT DbName FROM CommApiUsers WHERE Username = :username";
+        $statement = $this->dbConnection->prepare($query);
+
+        $res = $statement->execute([
+            'username' => $authUser
+        ]);
+
+        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        if ($statement->rowCount() > 0) {
+            return $rows[0];
+        } else {
+            return null;
         }
     }
 }
