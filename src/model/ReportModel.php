@@ -75,17 +75,8 @@ class ReportModel
             ]);
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if ($statement->rowCount() > 0) {
-                http_response_code(200);
-                return json_encode($result);
-
-            } else {
-                http_response_code(404);
-                return json_encode([
-                    'status' => '404',
-                    'message' => 'No report data found for the given dates'
-                ]);
-            }
+            http_response_code(200);
+            return json_encode($result);
 
         } catch (\PDOException $e) {
 
