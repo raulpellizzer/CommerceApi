@@ -29,16 +29,19 @@ class UserModel
     public function authenticate()
     {
         try {
-            $query = "SELECT * FROM CommApiUsers WHERE Username = :username AND Pass = :password";
+            $query = "SELECT * FROM CommApiUsers WHERE Username = :username";
             $statement = $this->dbConnection->prepare($query);
 
             $res = $statement->execute([
-                'username' => $this->user,
-                'password' => $this->pass
+                'username' => $this->user
             ]);
 
             $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if ($statement->rowCount() > 0 && $rows[0]['IsActive'] == 1) {
+
+            if ($this->user == $rows[0]['Username'] 
+                && password_verify($this->pass, $rows[0]['Pass']) 
+                && rows[0]['IsActive'] == 1) {
+                    
                 return true;
             } else {
                 return false;
