@@ -47,7 +47,7 @@ class ProductModel
             http_response_code(200);
             return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),
@@ -82,7 +82,7 @@ class ProductModel
             ]);
             return $statement->rowCount() > 0;
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             http_response_code(500);
             return json_encode([
                 'status' => '500',
@@ -148,7 +148,7 @@ class ProductModel
                 }
             }
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),
@@ -213,7 +213,7 @@ class ProductModel
                 ]);
             }
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),
@@ -275,7 +275,7 @@ class ProductModel
                 ]);
             }
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),

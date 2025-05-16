@@ -38,7 +38,7 @@ class SaleModel
             http_response_code(200);
             return json_encode($lastSale);
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),
@@ -123,7 +123,7 @@ class SaleModel
                 'message' => 'Sale created successfully',
             ]);
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             $this->dbConnection->rollBack();
 
             $this->logger->logMessage([

@@ -39,7 +39,7 @@ class ConfigModel
             http_response_code(200);
             return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),
@@ -97,7 +97,7 @@ class ConfigModel
                 'message' => 'Settings updated successfully'
             ]);
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             $this->dbConnection->rollBack();
 
             $this->logger->logMessage([

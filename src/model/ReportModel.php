@@ -78,7 +78,7 @@ class ReportModel
             http_response_code(200);
             return json_encode($result);
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
 
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),

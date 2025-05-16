@@ -28,19 +28,40 @@ class UserModel
      */
     public function authenticate()
     {
-        $query = "SELECT * FROM CommApiUsers WHERE Username = :username AND Pass = :password";
-        $statement = $this->dbConnection->prepare($query);
+        try {
+            $query = "SELECT * FROM CommApiUsers WHERE Username = :username AND Pass = :password";
+            $statement = $this->dbConnection->prepare($query);
 
-        $res = $statement->execute([
-            'username' => $this->user,
-            'password' => $this->pass
-        ]);
+            $res = $statement->execute([
+                'username' => $this->user,
+                'password' => $this->pass
+            ]);
 
-        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
-        if ($statement->rowCount() > 0 && $rows[0]['IsActive'] == 1) {
-            return true;
-        } else {
-            return false;
+            $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            if ($statement->rowCount() > 0 && $rows[0]['IsActive'] == 1) {
+                return true;
+            } else {
+                return false;
+            }
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Auth'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -51,18 +72,40 @@ class UserModel
      */
     public function getUserDatabase($authUser)
     {
-        $query = "SELECT TenantDbName FROM CommApiUsers WHERE Username = :username";
-        $statement = $this->dbConnection->prepare($query);
+        try {
+            
+            $query = "SELECT TenantDbName FROM CommApiUsers WHERE Username = :username";
+            $statement = $this->dbConnection->prepare($query);
 
-        $res = $statement->execute([
-            'username' => $authUser
-        ]);
+            $res = $statement->execute([
+                'username' => $authUser
+            ]);
 
-        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
-        if ($statement->rowCount() > 0) {
-            return $rows[0];
-        } else {
-            return null;
+            $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            if ($statement->rowCount() > 0) {
+                return $rows[0];
+            } else {
+                return null;
+            }
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Auth'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
         }
     }
 }

@@ -49,7 +49,7 @@ class LogModel
                 ]);
             }
 
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             http_response_code(500);
             return json_encode([
                 'status' => '500',
