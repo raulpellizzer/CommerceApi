@@ -35,12 +35,11 @@ class UserModel
             $res = $statement->execute([
                 'username' => $this->user
             ]);
-
             $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
             if ($this->user == $rows[0]['Username'] 
                 && password_verify($this->pass, $rows[0]['Pass']) 
-                && rows[0]['IsActive'] == 1) {
+                && $rows[0]['IsActive'] == 1) {
                     
                 return true;
             } else {
