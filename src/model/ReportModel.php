@@ -54,9 +54,9 @@ class ReportModel
                     break;
 
                 case 'SaleByDay':
-                    $sql = 'SELECT DATE(SaleDate) as SaleDate, SUM(Total) as TotalPerDay FROM Sales ' .
+                    $sql = 'SELECT DATE(SaleDate) as SaleDayDate, SUM(Total) as TotalPerDay FROM Sales ' .
                         'WHERE SaleDate BETWEEN :beginDate AND :endDate ' . 
-                        'GROUP BY SaleDate ' . 
+                        'GROUP BY SaleDayDate ' . 
                         'ORDER BY SaleDate asc';
                     break;
 
