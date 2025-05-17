@@ -8,6 +8,7 @@ class ApiController
 {   
     private $dbConnection;
     private $userModel;
+    private $settingsController;
 
     /**
      * ApiController constructor
@@ -18,6 +19,7 @@ class ApiController
     {
         $this->dbConnection = $dbConnection;
         $this->userModel = new UserModel($dbConnection, $user, $pass);
+        $this->settingsController = new SettingsController($dbConnection);
     }
 
     /**
@@ -53,6 +55,8 @@ class ApiController
 
         } else {
 
+            $apiSettings = $this->settingsController->getApiSettings();
+            return $apiSettings;
             $this->connectTenantDb();
 
             if (isset($uri[2])) {
