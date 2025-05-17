@@ -46,6 +46,7 @@ class ApiController
     {
         $resource = "";
 
+        // Authenticate the user
         if($this->userModel->authenticate() === false) {
             http_response_code(401);
             return json_encode([
@@ -56,62 +57,76 @@ class ApiController
         } else {
 
             $apiSettings = $this->settingsController->getApiSettings();
-            return $apiSettings;
-            $this->connectTenantDb();
+            $apiSettings = json_decode($apiSettings, true);
+            $apiIsAvailable = $apiSettings['data'][0]['IsApiOnline'];
 
-            if (isset($uri[2])) {
-                $resource = trim($uri[2]);
+            // Check if the API is available
+            if ($apiIsAvailable === 1) {
+                
+                // Connect to the tenant database and proceed with the request
+                $this->connectTenantDb();
 
-                if($resource === 'products') {
-                    $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
-                    $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
-                    $response = $productController->processRequest();
-                    
-                    return $response;
+                if (isset($uri[2])) {
+                    $resource = trim($uri[2]);
 
-                } else if($resource === 'reports') {
-                    $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
-                    $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
-                    $endDate = isset($_GET['enddate']) ? $_GET['enddate'] : null;
-
-                    if ($reportType !== null && $beginDate !== null && $endDate !== null) {
-                        $reportController = new ReportController($requestMethod, $this->dbConnection, $reportType, $beginDate, $endDate);
-                        $response = $reportController->processRequest();
-                        return $response;
+                    if($resource === 'products') {
+                        $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
+                        $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
+                        $response = $productController->processRequest();
                         
+                        return $response;
+
+                    } else if($resource === 'reports') {
+                        $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
+                        $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
+                        $endDate = isset($_GET['enddate']) ? $_GET['enddate'] : null;
+
+                        if ($reportType !== null && $beginDate !== null && $endDate !== null) {
+                            $reportController = new ReportController($requestMethod, $this->dbConnection, $reportType, $beginDate, $endDate);
+                            $response = $reportController->processRequest();
+                            return $response;
+                            
+                        } else {
+                            return json_encode([
+                                'status' => '400',
+                                'message' => 'Report types or dates not specified'
+                            ]);
+                        }
+                        
+                    } else if($resource === 'configs') {
+                        $configController = new ConfigController($requestMethod, $this->dbConnection);
+                        $response = $configController->processRequest();
+                        return $response;
+                    
+                    } else if($resource === 'sales') {
+                        $saleController = new SaleController($requestMethod, $this->dbConnection);
+                        $response = $saleController->processRequest();
+                        return $response;
+                    
+                    } else if($resource === 'logs') {
+                        $logController = new LogController($requestMethod, $this->dbConnection);
+                        $response = $logController->processRequest();
+                        return $response;
+                    
+                    } else if(Trim($resource) === '') {
+                        $response = $this->EndPointIsUp();
+                        return $response;
+                    
                     } else {
+                        http_response_code(404);
                         return json_encode([
-                            'status' => '400',
-                            'message' => 'Report types or dates not specified'
+                            'status' => '404',
+                            'message' => 'Resource not found'
                         ]);
                     }
-                    
-                } else if($resource === 'configs') {
-                    $configController = new ConfigController($requestMethod, $this->dbConnection);
-                    $response = $configController->processRequest();
-                    return $response;
-                
-                } else if($resource === 'sales') {
-                    $saleController = new SaleController($requestMethod, $this->dbConnection);
-                    $response = $saleController->processRequest();
-                    return $response;
-                
-                } else if($resource === 'logs') {
-                    $logController = new LogController($requestMethod, $this->dbConnection);
-                    $response = $logController->processRequest();
-                    return $response;
-                
-                } else if(Trim($resource) === '') {
-                    $response = $this->EndPointIsUp();
-                    return $response;
-                
-                } else {
-                    http_response_code(404);
-                    return json_encode([
-                        'status' => '404',
-                        'message' => 'Resource not found'
-                    ]);
                 }
+
+            } else {
+                http_response_code(503);
+                return json_encode([
+                    'status' => '503',
+                    'message' => 'API is currently unavailable'
+                ]);
             }
         }
     }
