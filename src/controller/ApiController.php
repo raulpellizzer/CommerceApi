@@ -58,7 +58,12 @@ class ApiController
 
             $apiSettings = $this->settingsController->getApiSettings();
             $apiSettings = json_decode($apiSettings, true);
-            $apiIsAvailable = $apiSettings['data'][0]['IsApiOnline'];
+
+            // Debug key for testing when in maintenance mode
+            if (isset($_GET['debug-key']) && $_GET['debug-key'] === $_ENV['API_DEBUG_KEY'] )
+                $apiIsAvailable = 1;
+            else
+                $apiIsAvailable = $apiSettings['data'][0]['IsApiOnline'];
 
             // Check if the API is available
             if ($apiIsAvailable === 1) {
