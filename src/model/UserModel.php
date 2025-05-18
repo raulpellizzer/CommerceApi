@@ -48,17 +48,6 @@ class UserModel
 
         } catch (\Exception $e) {
 
-            $this->logger->logMessage([
-                'currentDateTime' => date('Y-m-d H:i:s'),
-                'file' => __CLASS__,
-                'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
-                'args' => null,
-                'stackTrace' => print_r(debug_backtrace(), true),   
-                'type' => 'Error',
-                'category' => 'Auth'
-            ]);
-
             http_response_code(500);
             return json_encode([
                 'status' => '500',

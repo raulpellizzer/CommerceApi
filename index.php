@@ -11,8 +11,8 @@
 	$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 	$uri = explode( '/', $uri );
 
-	// Endpoints must start with /CommerceApi
-	if ($uri[1] !== 'CommerceApi') {
+	// Endpoints must start with {ENV}/CommerceApi
+	if ($uri[2] !== 'CommerceApi') {
 		header("HTTP/1.1 404 Not Found");
 		exit();
 	}

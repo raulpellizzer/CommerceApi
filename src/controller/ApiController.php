@@ -71,8 +71,8 @@ class ApiController
                 // Connect to the tenant database and proceed with the request
                 $this->connectTenantDb();
 
-                if (isset($uri[2])) {
-                    $resource = trim($uri[2]);
+                if (isset($uri[3])) {
+                    $resource = trim($uri[3]);
 
                     if($resource === 'products') {
                         $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
