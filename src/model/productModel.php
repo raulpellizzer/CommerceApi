@@ -96,55 +96,63 @@ class ProductModel
      *
      * @return string JSON response
      */
-    public function createProduct()
+    public function createProducts()
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
 
-            $productExists = $this->checkProductExists($_POST['BarCode']);
-            if ($productExists) {
-                http_response_code(400);
-                return json_encode([
-                    'status' => '400',
-                    'message' => 'Product already exists'
-                ]);
-                
+            if (isset($_POST['Products'])) {
+                //return 'Mass upload for: ' . count($_POST['Products']) . ' products';
+                // Logic for mass upload. For each product in products ..
+
             } else {
 
-                $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
-                VALUES (:barcode, :stock, :price, :name)');
-
-                $res = $statement->execute([
-                    'barcode' => $_POST['BarCode'],
-                    'stock' => $_POST['Stock'],
-                    'price' => $_POST['Price'],
-                    'name' => $_POST['Name'],
-                ]);
-
-                if (!$res) {
+                // Single Product Creation
+                $productExists = $this->checkProductExists($_POST['BarCode']);
+                if ($productExists) {
                     http_response_code(400);
                     return json_encode([
                         'status' => '400',
-                        'message' => 'Error creating product'
+                        'message' => 'Product already exists'
                     ]);
+                    
                 } else {
 
-                    $this->logger->logMessage([
-                        'currentDateTime' => date('Y-m-d H:i:s'),
-                        'file' => __CLASS__,
-                        'function' => __FUNCTION__,
-                        'message' => 'Creating Product',
-                        'args' => 'barCode: ' . $_POST['BarCode'] . ', stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'],
-                        'stackTrace' => null,
-                        'type' => 'Info',
-                        'category' => 'Product'
+                    $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
+                    VALUES (:barcode, :stock, :price, :name)');
+
+                    $res = $statement->execute([
+                        'barcode' => $_POST['BarCode'],
+                        'stock' => $_POST['Stock'],
+                        'price' => $_POST['Price'],
+                        'name' => $_POST['Name'],
                     ]);
 
-                    http_response_code(201);
-                    return json_encode([
-                        'status' => '201',
-                        'message' => 'Product created successfully'
-                    ]);
+                    if (!$res) {
+                        http_response_code(400);
+                        return json_encode([
+                            'status' => '400',
+                            'message' => 'Error creating product'
+                        ]);
+                    } else {
+
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Creating Product',
+                            'args' => 'barCode: ' . $_POST['BarCode'] . ', stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'],
+                            'stackTrace' => null,
+                            'type' => 'Info',
+                            'category' => 'Product'
+                        ]);
+
+                        http_response_code(201);
+                        return json_encode([
+                            'status' => '201',
+                            'message' => 'Product created successfully'
+                        ]);
+                    }
                 }
             }
 
@@ -174,7 +182,7 @@ class ProductModel
      *
      * @return string JSON response
      */
-    public function updateProduct()
+    public function updateProducts()
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
@@ -239,7 +247,7 @@ class ProductModel
      *
      * @return string JSON response
      */
-    public function deleteProduct()
+    public function deleteProducts()
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);

@@ -38,13 +38,13 @@ class ProductController
                 return $this->productModel->getAllProducts();
 
             case 'POST':
-                return $this->productModel->createProduct();
+                return $this->productModel->createProducts();
 
             case 'PUT':
-                return $this->productModel->updateProduct();
+                return $this->productModel->updateProducts();
 
             case 'DELETE':
-                return $this->productModel->deleteProduct();
+                return $this->productModel->deleteProducts();
                 
             default:
                 return json_encode([
