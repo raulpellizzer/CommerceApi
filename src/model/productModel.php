@@ -102,11 +102,21 @@ class ProductModel
             $_POST = json_decode(file_get_contents("php://input"), true);
 
             if (isset($_POST['Products'])) {
-                
-                // Mass upload.
                 $products = $_POST['Products'];
 
+                if (count($products) === 1) {
+                    $productExists = $this->checkProductExists($products[0]['BarCode']);
+                    if ($productExists) {
+                        http_response_code(400);
+                        return json_encode([
+                            'status' => '400',
+                            'message' => 'Product already exists'
+                        ]);
+                    }
+                }
+
                 foreach ($products as $product) {
+
                     $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
                     VALUES (:barcode, :stock, :price, :name)');
 
@@ -122,7 +132,7 @@ class ProductModel
                             'currentDateTime' => date('Y-m-d H:i:s'),
                             'file' => __CLASS__,
                             'function' => __FUNCTION__,
-                            'message' => 'Creating Product via mass upload',
+                            'message' => 'Creating Product',
                             'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', price: ' . $product['Price'] . ', name: ' . $product['Name'],
                             'stackTrace' => null,
                             'type' => 'Info',
@@ -139,65 +149,22 @@ class ProductModel
 
             } else {
 
-                // Single Product Creation
-                $productExists = $this->checkProductExists($_POST['BarCode']);
-                if ($productExists) {
-                    http_response_code(400);
-                    return json_encode([
-                        'status' => '400',
-                        'message' => 'Product already exists'
-                    ]);
-                    
-                } else {
+                $this->logger->logMessage([
+                    'currentDateTime' => date('Y-m-d H:i:s'),
+                    'file' => __CLASS__,
+                    'function' => __FUNCTION__,
+                    'message' => 'Creating Product - Bad request 400',
+                    'args' => '_POST -> products not present',
+                    'stackTrace' => null,
+                    'type' => 'Error',
+                    'category' => 'Product'
+                ]);
 
-                    $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
-                    VALUES (:barcode, :stock, :price, :name)');
-
-                    $res = $statement->execute([
-                        'barcode' => $_POST['BarCode'],
-                        'stock' => $_POST['Stock'],
-                        'price' => $_POST['Price'],
-                        'name' => $_POST['Name'],
-                    ]);
-
-                    if (!$res) {
-
-                        $this->logger->logMessage([
-                            'currentDateTime' => date('Y-m-d H:i:s'),
-                            'file' => __CLASS__,
-                            'function' => __FUNCTION__,
-                            'message' => 'Creating Product - Single upload - DUPLICATED PRODUCT, STATUS 400',
-                            'args' => 'barCode: ' . $_POST['BarCode'] . ', stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'],
-                            'stackTrace' => null,
-                            'type' => 'Error',
-                            'category' => 'Product'
-                        ]);
-
-                        http_response_code(400);
-                        return json_encode([
-                            'status' => '400',
-                            'message' => 'Error creating product'
-                        ]);
-                    } else {
-
-                        $this->logger->logMessage([
-                            'currentDateTime' => date('Y-m-d H:i:s'),
-                            'file' => __CLASS__,
-                            'function' => __FUNCTION__,
-                            'message' => 'Creating Product',
-                            'args' => 'barCode: ' . $_POST['BarCode'] . ', stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'],
-                            'stackTrace' => null,
-                            'type' => 'Info',
-                            'category' => 'Product'
-                        ]);
-
-                        http_response_code(201);
-                        return json_encode([
-                            'status' => '201',
-                            'message' => 'Product created successfully'
-                        ]);
-                    }
-                }
+                http_response_code(400);
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Product already exists'
+                ]);
             }
 
         } catch (\Exception $e) {
