@@ -197,38 +197,57 @@ class ProductModel
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
-            $statement = $this->dbConnection->prepare('UPDATE Products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
 
-            $res = $statement->execute([
-                'stock' => $_POST['Stock'],
-                'price' => $_POST['Price'],
-                'name' => $_POST['Name'],
-                'barcode' => $_POST['BarCode']
-            ]);
+            if (isset($_POST['Products'])) {
+                $products = $_POST['Products'];
 
-            if (!$res) {
-                http_response_code(400);
+                foreach ($products as $product) {
+
+                    $statement = $this->dbConnection->prepare('UPDATE Products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
+                    $res = $statement->execute([
+                        'barcode' => $product['BarCode'],
+                        'stock' => $product['Stock'],
+                        'price' => $product['Price'],
+                        'name' => $product['Name'],
+                    ]);
+
+                    if ($res) {
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Updating Product Data',
+                            'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', price: ' . $product['Price'] . ', name: ' . $product['Name'],
+                            'stackTrace' => null,
+                            'type' => 'Info',
+                            'category' => 'Product'
+                        ]);
+                    }
+                }
+
+                http_response_code(201);
                 return json_encode([
-                    'status' => '400',
-                    'message' => 'Error updating product'
+                    'status' => '201',
+                    'message' => 'Products updated successfully'
                 ]);
+
             } else {
 
                 $this->logger->logMessage([
                     'currentDateTime' => date('Y-m-d H:i:s'),
                     'file' => __CLASS__,
                     'function' => __FUNCTION__,
-                    'message' => 'Updating Product',
-                    'args' => 'stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'] . ', barcode: ' . $_POST['BarCode'],
+                    'message' => 'Updating Product - Bad request 400',
+                    'args' => '_POST -> products not present',
                     'stackTrace' => null,
-                    'type' => 'Info',
+                    'type' => 'Error',
                     'category' => 'Product'
                 ]);
 
-                http_response_code(200);
+                http_response_code(400);
                 return json_encode([
-                    'status' => '200',
-                    'message' => 'Product updated successfully'
+                    'status' => '400',
+                    'message' => 'Product already exists'
                 ]);
             }
 
