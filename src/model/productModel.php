@@ -102,8 +102,40 @@ class ProductModel
             $_POST = json_decode(file_get_contents("php://input"), true);
 
             if (isset($_POST['Products'])) {
-                //return 'Mass upload for: ' . count($_POST['Products']) . ' products';
-                // Logic for mass upload. For each product in products ..
+                
+                // Mass upload.
+                $products = $_POST['Products'];
+
+                foreach ($products as $product) {
+                    $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
+                    VALUES (:barcode, :stock, :price, :name)');
+
+                    $res = $statement->execute([
+                        'barcode' => $product['BarCode'],
+                        'stock' => $product['Stock'],
+                        'price' => $product['Price'],
+                        'name' => $product['Name'],
+                    ]);
+
+                    if ($res) {
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Creating Product via mass upload',
+                            'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', price: ' . $product['Price'] . ', name: ' . $product['Name'],
+                            'stackTrace' => null,
+                            'type' => 'Info',
+                            'category' => 'Product'
+                        ]);
+                    }
+                }
+
+                http_response_code(201);
+                return json_encode([
+                    'status' => '201',
+                    'message' => 'Products created successfully'
+                ]);
 
             } else {
 
@@ -129,6 +161,18 @@ class ProductModel
                     ]);
 
                     if (!$res) {
+
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Creating Product - Single upload - DUPLICATED PRODUCT, STATUS 400',
+                            'args' => 'barCode: ' . $_POST['BarCode'] . ', stock: ' . $_POST['Stock'] . ', price: ' . $_POST['Price'] . ', name: ' . $_POST['Name'],
+                            'stackTrace' => null,
+                            'type' => 'Error',
+                            'category' => 'Product'
+                        ]);
+
                         http_response_code(400);
                         return json_encode([
                             'status' => '400',
