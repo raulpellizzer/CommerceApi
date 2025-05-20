@@ -281,35 +281,54 @@ class ProductModel
     {
         try {
             $_POST = json_decode(file_get_contents("php://input"), true);
-            $statement = $this->dbConnection->prepare('DELETE FROM Products WHERE BarCode = :barcode');
 
-            $res = $statement->execute([
-                'barcode' => $_POST['BarCode']
-            ]);
+            if (isset($_POST['Products'])) {
+                $products = $_POST['Products'];
 
-            if (!$res) {
-                http_response_code(400);
+                foreach ($products as $product) {
+
+                    $statement = $this->dbConnection->prepare('DELETE FROM Products WHERE BarCode = :barcode');
+                    $res = $statement->execute([
+                        'barcode' => $product['BarCode']
+                    ]);
+
+                    if ($res) {
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Deleting Product',
+                            'args' => 'barCode: ' . $product['BarCode'],
+                            'stackTrace' => null,
+                            'type' => 'Info',
+                            'category' => 'Product'
+                        ]);
+                    }
+                }
+
+                http_response_code(200);
                 return json_encode([
-                    'status' => '400',
-                    'message' => 'Error deleting product'
+                    'status' => '200',
+                    'message' => 'Products deleted successfully'
                 ]);
+
             } else {
 
                 $this->logger->logMessage([
                     'currentDateTime' => date('Y-m-d H:i:s'),
                     'file' => __CLASS__,
                     'function' => __FUNCTION__,
-                    'message' => 'Deleting Product',
-                    'args' => 'barCode: ' . $_POST['BarCode'],
+                    'message' => 'Deleting Product - Bad request 400',
+                    'args' => '_POST -> products not present',
                     'stackTrace' => null,
-                    'type' => 'Info',
+                    'type' => 'Error',
                     'category' => 'Product'
                 ]);
 
-                http_response_code(200);
+                http_response_code(400);
                 return json_encode([
-                    'status' => '200',
-                    'message' => 'Product deleted successfully'
+                    'status' => '400',
+                    'message' => 'Bad request'
                 ]);
             }
 
