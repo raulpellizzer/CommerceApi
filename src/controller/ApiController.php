@@ -1,6 +1,6 @@
 <?php
 namespace Src\Controller;
-use Src\Controller\ProductController;
+//use Src\Controller\ProductController; // to-do remove this
 use Src\Model\UserModel;
 use Src\System;
 
@@ -73,7 +73,7 @@ class ApiController
 
                 if (isset($uri[3])) {
                     $resource = trim($uri[3]);
-
+                    
                     if($resource === 'products') {
                         $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
                         $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
@@ -111,6 +111,11 @@ class ApiController
                     } else if($resource === 'logs') {
                         $logController = new LogController($requestMethod, $this->dbConnection);
                         $response = $logController->processRequest();
+                        return $response;
+                    
+                    } else if($resource === 'keys') {
+                        $cryptoController = new CryptoController($requestMethod, $this->dbConnection);
+                        $response = $cryptoController->processRequest();
                         return $response;
                     
                     } else if(Trim($resource) === '') {
