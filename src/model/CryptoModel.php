@@ -22,7 +22,42 @@ class CryptoModel
      * @return array Array of bits
      */
     public function getKeys() {
-        return 'Keys';
-    }
+        try {
+            
+            $sql = 'SELECT * FROM UsefulKeys';
 
+            $stmt = $this->dbConnection->prepare($sql);
+            $res = $stmt->execute();
+
+            if (!$res) {
+                http_response_code(400);
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Error fetching keys'
+                ]);
+            }
+
+            http_response_code(200);
+            return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Crypto'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
