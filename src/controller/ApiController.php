@@ -152,6 +152,6 @@ class ApiController
 
         $this->dbConnection = null;
         $this->dbConnection = new System\DatabaseConnector();
-        $this->dbConnection = $this->dbConnection->getConnection($dbName['TenantDbName']);
+        $this->dbConnection = $this->dbConnection->getConnection($dbName);
     }
 }

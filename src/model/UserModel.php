@@ -6,6 +6,7 @@ class UserModel
     private $dbConnection;
     private $user;
     private $pass;
+    private $tenantDbName;
 
     /**
      * UserModel constructor
@@ -29,22 +30,55 @@ class UserModel
     public function authenticate()
     {
         try {
-            $query = "SELECT * FROM CommApiUsers WHERE Username = :username";
-            $statement = $this->dbConnection->prepare($query);
+            // Hash email for lookup
+            $emailHash = hash('sha256', strtolower(trim($this->user)));
 
+            $query = "SELECT is_active, 
+                tenant_name, 
+                password, 
+                is_verified, 
+                email_hash, 
+                email_encrypted, 
+                email_iv, 
+                email_tag 
+                FROM user 
+                WHERE email_hash = :emailHash";
+
+            $statement = $this->dbConnection->prepare($query);
             $res = $statement->execute([
-                'username' => $this->user
+                'emailHash' => $emailHash
             ]);
             $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
-            if ($this->user == $rows[0]['Username'] 
-                && password_verify($this->pass, $rows[0]['Pass']) 
-                && $rows[0]['IsActive'] == 1) {
-                    
-                return true;
-            } else {
+            if ($statement->rowCount() > 0) {
+                
+                // TO-DO: CHECK IF rowCount() >= 2 (in the very unlikely case of multiple users with the same email hash (same password))
+                // Loop through the rows decrypting the email and checking the password to find the correct user
+
+                // Decrypt the user email
+                $userEmailDecrypted = openssl_decrypt(
+                    $rows[0]['email_encrypted'],
+                    'aes-256-gcm',
+                    $_ENV['ENCRYPTION_KEY'],
+                    OPENSSL_RAW_DATA,
+                    $rows[0]['email_iv'],
+                    $rows[0]['email_tag']
+                );
+
+                if ($this->user === $userEmailDecrypted 
+                    && password_verify($this->pass, $rows[0]['password']) 
+                    && $rows[0]['is_active'] == 1
+                    && $rows[0]['is_verified'] == 1) {
+                        
+                    $this->tenantDbName = $rows[0]['tenant_name'];
+                    return true;
+
+                } else {
+                    return false;
+                }
+
+            } else
                 return false;
-            }
 
         } catch (\Exception $e) {
 
@@ -59,44 +93,10 @@ class UserModel
     /**
      * Get user database name to connect to client's database
      *
-     * @return array User database name
+     * @return string User database name
      */
     public function getUserDatabase($authUser)
     {
-        try {
-            
-            $query = "SELECT TenantDbName FROM CommApiUsers WHERE Username = :username";
-            $statement = $this->dbConnection->prepare($query);
-
-            $res = $statement->execute([
-                'username' => $authUser
-            ]);
-
-            $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if ($statement->rowCount() > 0) {
-                return $rows[0];
-            } else {
-                return null;
-            }
-
-        } catch (\Exception $e) {
-
-            $this->logger->logMessage([
-                'currentDateTime' => date('Y-m-d H:i:s'),
-                'file' => __CLASS__,
-                'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
-                'args' => null,
-                'stackTrace' => print_r(debug_backtrace(), true),   
-                'type' => 'Error',
-                'category' => 'Auth'
-            ]);
-
-            http_response_code(500);
-            return json_encode([
-                'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
-            ]);
-        }
+        return $this->tenantDbName;
     }
 }
