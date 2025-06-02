@@ -30,6 +30,8 @@ class UserModel
     public function authenticate()
     {
         try {
+            $userIsAuthenticated = false;
+
             // Hash email for lookup
             $emailHash = hash('sha256', strtolower(trim($this->user)));
 
@@ -52,33 +54,30 @@ class UserModel
 
             if ($statement->rowCount() > 0) {
                 
-                // TO-DO: CHECK IF rowCount() >= 2 (in the very unlikely case of multiple users with the same email hash (same password))
-                // Loop through the rows decrypting the email and checking the password to find the correct user
+                // To-do: Test for different user with same pass
+                foreach ($rows as $row) {
+                    // Decrypt the user email
+                    $userEmailDecrypted = openssl_decrypt(
+                        $row['email_encrypted'],
+                        'aes-256-gcm',
+                        $_ENV['ENCRYPTION_KEY'],
+                        OPENSSL_RAW_DATA,
+                        $row['email_iv'],
+                        $row['email_tag']
+                    );
 
-                // Decrypt the user email
-                $userEmailDecrypted = openssl_decrypt(
-                    $rows[0]['email_encrypted'],
-                    'aes-256-gcm',
-                    $_ENV['ENCRYPTION_KEY'],
-                    OPENSSL_RAW_DATA,
-                    $rows[0]['email_iv'],
-                    $rows[0]['email_tag']
-                );
-
-                if ($this->user === $userEmailDecrypted 
-                    && password_verify($this->pass, $rows[0]['password']) 
-                    && $rows[0]['is_active'] == 1
-                    && $rows[0]['is_verified'] == 1) {
-                        
-                    $this->tenantDbName = $rows[0]['tenant_name'];
-                    return true;
-
-                } else {
-                    return false;
+                    if (strtolower(trim($this->user)) === $userEmailDecrypted 
+                        && password_verify($this->pass, $row['password']) 
+                        && $row['is_active'] == 1
+                        && $row['is_verified'] == 1) {
+                            
+                        $this->tenantDbName = $row['tenant_name'];
+                        $userIsAuthenticated = true;
+                    }
                 }
+            }
 
-            } else
-                return false;
+            return $userIsAuthenticated;
 
         } catch (\Exception $e) {
 
