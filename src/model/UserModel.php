@@ -98,4 +98,32 @@ class UserModel
     {
         return $this->tenantDbName;
     }
+
+    /**
+     * Get tenant plan type
+     *
+     * @return string Tenant plan type
+     */
+    public function getTenantPlanType() 
+    {
+        try {
+            $query = "SELECT plan_type
+                FROM user 
+                WHERE tenant_name = :tenant_name";
+
+            $statement = $this->dbConnection->prepare($query);
+            $res = $statement->execute([
+                'tenant_name' => $this->tenantDbName
+            ]);
+            $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $rows[0]['plan_type'] ?? 'free';
+
+        } catch (\Exception $e) {
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Error fetching tenant plan type: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

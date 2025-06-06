@@ -8,3 +8,14 @@ composer dump-autoload
 composer install
 
 this worked. saving this just in case
+
+
+
+---------------------
+
+use this as a shorter working version
+
+rm -rf vendor/*
+composer clearcache
+composer install
+composer dump-autoload

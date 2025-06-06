@@ -1,6 +1,5 @@
 <?php
 namespace Src\Controller;
-//use Src\Controller\ProductController; // to-do remove this
 use Src\Model\UserModel;
 use Src\System;
 
@@ -67,67 +66,80 @@ class ApiController
 
             // Check if the API is available
             if ($apiIsAvailable === 1) {
-                
-                // Connect to the tenant database and proceed with the request
-                $this->connectTenantDb();
 
+                // WIP HERE: Get tenant plan type info and pass to further processing
+                // Pass $tenantPlanType to controllers 'processRequest' method to validate
+                $tenantPlanType = $this->userModel->getTenantPlanType();
+                
                 if (isset($uri[3])) {
                     $resource = trim($uri[3]);
-                    
-                    if($resource === 'products') {
-                        $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
-                        $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
-                        $response = $productController->processRequest();
-                        
+
+                    if($resource === 'plan') {
+                        $planController = new PlanController($requestMethod, $this->dbConnection);
+                        $response = $planController->processRequest();
                         return $response;
 
-                    } else if($resource === 'reports') {
-                        $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
-                        $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
-                        $endDate = isset($_GET['enddate']) ? $_GET['enddate'] : null;
+                    } else {
 
-                        if ($reportType !== null && $beginDate !== null && $endDate !== null) {
-                            $reportController = new ReportController($requestMethod, $this->dbConnection, $reportType, $beginDate, $endDate);
-                            $response = $reportController->processRequest();
-                            return $response;
+                        // Connect to the tenant database and proceed with the request
+                        // related to tenant resources
+                        $this->connectTenantDb();
+                        
+                        if($resource === 'products') {
+                            $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
+                            $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl);
+                            $response = $productController->processRequest();
                             
+                            return $response;
+
+                        } else if($resource === 'reports') {
+                            $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
+                            $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
+                            $endDate = isset($_GET['enddate']) ? $_GET['enddate'] : null;
+
+                            if ($reportType !== null && $beginDate !== null && $endDate !== null) {
+                                $reportController = new ReportController($requestMethod, $this->dbConnection, $reportType, $beginDate, $endDate);
+                                $response = $reportController->processRequest();
+                                return $response;
+                                
+                            } else {
+                                return json_encode([
+                                    'status' => '400',
+                                    'message' => 'Report types or dates not specified'
+                                ]);
+                            }
+                            
+                        } else if($resource === 'configs') {
+                            $configController = new ConfigController($requestMethod, $this->dbConnection);
+                            $response = $configController->processRequest();
+                            return $response;
+                        
+                        } else if($resource === 'sales') {
+                            $saleController = new SaleController($requestMethod, $this->dbConnection);
+                            $response = $saleController->processRequest();
+                            return $response;
+                        
+                        } else if($resource === 'logs') {
+                            $logController = new LogController($requestMethod, $this->dbConnection);
+                            $response = $logController->processRequest();
+                            return $response;
+                        
+                        } else if($resource === 'keys') {
+                            $cryptoController = new CryptoController($requestMethod, $this->dbConnection);
+                            $response = $cryptoController->processRequest();
+                            return $response;
+                        
+                        } else if(Trim($resource) === '') {
+                            $response = $this->EndPointIsUp();
+                            return $response;
+                        
                         } else {
+                            http_response_code(404);
                             return json_encode([
-                                'status' => '400',
-                                'message' => 'Report types or dates not specified'
+                                'status' => '404',
+                                'message' => 'Resource not found'
                             ]);
                         }
-                        
-                    } else if($resource === 'configs') {
-                        $configController = new ConfigController($requestMethod, $this->dbConnection);
-                        $response = $configController->processRequest();
-                        return $response;
-                    
-                    } else if($resource === 'sales') {
-                        $saleController = new SaleController($requestMethod, $this->dbConnection);
-                        $response = $saleController->processRequest();
-                        return $response;
-                    
-                    } else if($resource === 'logs') {
-                        $logController = new LogController($requestMethod, $this->dbConnection);
-                        $response = $logController->processRequest();
-                        return $response;
-                    
-                    } else if($resource === 'keys') {
-                        $cryptoController = new CryptoController($requestMethod, $this->dbConnection);
-                        $response = $cryptoController->processRequest();
-                        return $response;
-                    
-                    } else if(Trim($resource) === '') {
-                        $response = $this->EndPointIsUp();
-                        return $response;
-                    
-                    } else {
-                        http_response_code(404);
-                        return json_encode([
-                            'status' => '404',
-                            'message' => 'Resource not found'
-                        ]);
                     }
                 }
 
