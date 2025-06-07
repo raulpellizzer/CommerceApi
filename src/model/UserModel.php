@@ -36,7 +36,7 @@ class UserModel
             $emailHash = hash('sha256', strtolower(trim($this->user)));
 
             $query = "SELECT is_active, 
-                tenant_name, 
+                tenant_database, 
                 password, 
                 is_verified, 
                 email_hash, 
@@ -71,7 +71,7 @@ class UserModel
                         && $row['is_active'] == 1
                         && $row['is_verified'] == 1) {
                             
-                        $this->tenantDbName = $row['tenant_name'];
+                        $this->tenantDbName = $row['tenant_database'];
                         $userIsAuthenticated = true;
                     }
                 }
@@ -109,11 +109,11 @@ class UserModel
         try {
             $query = "SELECT plan_type
                 FROM user 
-                WHERE tenant_name = :tenant_name";
+                WHERE tenant_database = :tenant_database";
 
             $statement = $this->dbConnection->prepare($query);
             $res = $statement->execute([
-                'tenant_name' => $this->tenantDbName
+                'tenant_database' => $this->tenantDbName
             ]);
             $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $rows[0]['plan_type'] ?? 'free';
