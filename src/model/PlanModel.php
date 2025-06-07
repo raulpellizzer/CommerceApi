@@ -25,20 +25,25 @@ class PlanModel
         try {
 
             $query = "SELECT pf.PlanId, ft.Id as FeatureId, ft.Name as FeatureName FROM PlanFeature AS pf INNER JOIN Feature AS ft ON pf.FeatureId = ft.Id";
-            
             $statement = $this->dbConnection->prepare($query);
             $statement->execute();
             $planFeatureData = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
-            $query = "select plan_type from user where email_hash = :emailHash";
+            $query = "SELECT plan_type FROM user WHERE email_hash = :emailHash";
             $statement = $this->dbConnection->prepare($query);
             $emailHash = hash('sha256', strtolower(trim($_SERVER['PHP_AUTH_USER'])));
             $statement->execute(['emailHash' => $emailHash]);
             $userPlanType = $statement->fetchColumn();
 
+            $query = "SELECT created_date as CreatedDate, tenant_name as TenantName FROM user WHERE email_hash = :emailHash";
+            $statement = $this->dbConnection->prepare($query);
+            $statement->execute(['emailHash' => $emailHash]);
+            $subscriptionData = $statement->fetchAll(\PDO::FETCH_ASSOC);
+
             return json_encode([
                 'PlanFeatures' => $planFeatureData,
                 'UserPlanType' => $userPlanType,
+                'UserSubscriptionData' => $subscriptionData,
                 'Status' => '200',
             ]);
 
