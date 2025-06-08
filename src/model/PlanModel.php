@@ -71,15 +71,11 @@ class PlanModel
 
         foreach ($planFeatureDataMapping as $feature) {
 
-            if ($tenantPlanType >= $feature['PlanId']) {
-                $availableFeatures[] = [
-                    $feature['FeatureName'] => true
-                ];
-            } else {
-                $availableFeatures[] = [
-                    $feature['FeatureName'] => false
-                ];
-            }
+            if ($tenantPlanType >= $feature['PlanId'])
+                $availableFeatures[$feature['FeatureName']] = true;
+
+            else
+                $availableFeatures[$feature['FeatureName']] = false;
         }
 
         return $availableFeatures;

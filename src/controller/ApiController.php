@@ -75,14 +75,25 @@ class ApiController
                 $planFeatureDataMapping = $planController->planModel->getPlanData();
                 $availableFeatures = $planController->planModel->GetAvailableFeatures($planFeatureDataMapping, $tenantPlanType);
 
-                //return var_dump($availableFeatures); // holds available features for the tenant's plan type, working. Now use it to validate the request
+                // array(5) {
+                //     ["Ilimited Products"]=>
+                //     bool(true)
+                //     ["Products: Mass Operations"]=>
+                //     bool(true)
+                //     ["Config View"]=>
+                //     bool(true)
+                //     ["Print Receipt"]=>
+                //     bool(true)
+                //     ["Stock Control"]=>
+                //     bool(false)
+                // }
+
+                // example usage: $availableFeatures['Stock Control']
+                return var_dump($availableFeatures['Stock Control']); // holds available features for the tenant's plan type, working. Now use it to validate the request
                 
-                
 
 
 
-
-                
                 if (isset($uri[3])) {
                     $resource = trim($uri[3]);
 
