@@ -69,15 +69,35 @@ class ApiController
 
                 // WIP HERE: Get tenant plan type info and pass to further processing
                 // Pass $tenantPlanType to controllers 'processRequest' method to validate
+                
                 $tenantPlanType = $this->userModel->getTenantPlanType();
+                $planController = new PlanController($requestMethod, $this->dbConnection);
+                $planFeatureDataMapping = $planController->planModel->getPlanData();
+                $availableFeatures = $planController->planModel->GetAvailableFeatures($planFeatureDataMapping, $tenantPlanType);
+
+                //return var_dump($availableFeatures); // holds available features for the tenant's plan type, working. Now use it to validate the request
+                
+                
+
+
+
+
                 
                 if (isset($uri[3])) {
                     $resource = trim($uri[3]);
 
                     if($resource === 'plan') {
+
+                        // Leaving this commented code here for future reference if we need to implement more methods/actions in PlanController
+                        // Since today there is only one method 'GET' to get plan data (already being retrieved above), no need to do it a second time.
+
+                        /*
                         $planController = new PlanController($requestMethod, $this->dbConnection);
                         $response = $planController->processRequest();
                         return $response;
+                        */
+
+                        return $planFeatureDataMapping;
 
                     } else {
 

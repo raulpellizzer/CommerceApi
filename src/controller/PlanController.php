@@ -5,7 +5,7 @@ use Src\Model\PlanModel;
 class PlanController
 {
     private $requestMethod;
-    private $planModel;
+    public $planModel;
 
     /**
      * PlanController constructor

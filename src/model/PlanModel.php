@@ -54,4 +54,34 @@ class PlanModel
             ]);
         }
     }
+
+    /**
+     * Get available features based on the plan type
+     *
+     * @param array $planFeatureDataMapping Array of plan feature data
+     * @param string $tenantPlanType The plan type of the tenant
+     * @return array List of available features for the tenant's plan type
+     */
+    public function GetAvailableFeatures($planFeatureDataMapping, $tenantPlanType)
+    {
+        $planFeatureDataMapping = json_decode($planFeatureDataMapping, true);
+        $planFeatureDataMapping = $planFeatureDataMapping['PlanFeatures'];
+        $availableFeatures = [];
+        $tenantPlanType = (int) $tenantPlanType;
+
+        foreach ($planFeatureDataMapping as $feature) {
+
+            if ($tenantPlanType >= $feature['PlanId']) {
+                $availableFeatures[] = [
+                    $feature['FeatureName'] => true
+                ];
+            } else {
+                $availableFeatures[] = [
+                    $feature['FeatureName'] => false
+                ];
+            }
+        }
+
+        return $availableFeatures;
+    }
 }
