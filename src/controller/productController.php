@@ -19,11 +19,12 @@ class ProductController
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
      * @param string $stockControl Stock control parameter
+     * @param array $availableFeatures Available features for tenant
      */
-    public function __construct($requestMethod, $dbConnection, $stockControl)
+    public function __construct($requestMethod, $dbConnection, $stockControl, $availableFeatures)
     {
         $this->requestMethod = $requestMethod;
-        $this->productModel = new ProductModel($dbConnection, $stockControl);
+        $this->productModel = new ProductModel($dbConnection, $stockControl, $availableFeatures);
     }
 
     /**

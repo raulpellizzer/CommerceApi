@@ -5,18 +5,22 @@ class ProductModel
 {
     private $dbConnection;
     private $stockControl;
+    private $availableFeatures;
 
     /**
      * ProductModel constructor
      *
      * @param object $dbConnection Database connection object
      * @param string $stockControl Stock control parameter
+     * @param array $availableFeatures Available features for tenant
      */
-    public function __construct($dbConnection, $stockControl)
+    public function __construct($dbConnection, $stockControl, $availableFeatures)
     {
         $this->dbConnection = $dbConnection;
         $this->stockControl = $stockControl;
+        $this->availableFeatures = $availableFeatures;
         $this->logger = new LogModel($this->dbConnection);
+        define("PRODUCT_LIMITED_FREE_USER", 15);
     }
 
     /**
@@ -92,6 +96,28 @@ class ProductModel
     }
 
     /**
+     * Get the number of products in the database
+     *
+     * @return string JSON response with the number of products
+     */
+    private function getNumberOfProducts()
+    {
+        try {
+            $statement = $this->dbConnection->prepare('SELECT COUNT(BarCode) FROM Products');
+            $statement->execute();
+            $count = $statement->fetchColumn();
+            return $count;
+
+        } catch (\Exception $e) {
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Create a new product in the database
      *
      * @return string JSON response
@@ -103,6 +129,19 @@ class ProductModel
 
             if (isset($_POST['Products'])) {
                 $products = $_POST['Products'];
+
+                /* FEATURE GATING */
+                if (!$this->availableFeatures['Ilimited Products']) {
+                    $numberOfProducts = $this->getNumberOfProducts();
+                    
+                    if (count($products) + $numberOfProducts > PRODUCT_LIMITED_FREE_USER) {
+                        http_response_code(403);
+                        return json_encode([
+                            'status' => '403',
+                            'message' => 'Limit exceeded for free user'
+                        ]);
+                    }
+                }
 
                 if (count($products) === 1) {
                     $productExists = $this->checkProductExists($products[0]['BarCode']);
@@ -163,7 +202,7 @@ class ProductModel
                 http_response_code(400);
                 return json_encode([
                     'status' => '400',
-                    'message' => 'Product already exists'
+                    'message' => 'Product bad request'
                 ]);
             }
 
