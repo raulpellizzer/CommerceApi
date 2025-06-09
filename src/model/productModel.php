@@ -20,7 +20,7 @@ class ProductModel
         $this->stockControl = $stockControl;
         $this->availableFeatures = $availableFeatures;
         $this->logger = new LogModel($this->dbConnection);
-        define("PRODUCT_LIMITED_FREE_USER", 15);
+        define("PRODUCT_LIMITED_FREE_USER", 40);
     }
 
     /**
