@@ -130,7 +130,15 @@ class ProductModel
             if (isset($_POST['Products'])) {
                 $products = $_POST['Products'];
 
-                /* FEATURE GATING */
+                /* PRODUCT FEATURE GATING */
+                if (!$this->availableFeatures['Ilimited Products'] && count($products) > 1) {
+                    http_response_code(403);
+                    return json_encode([
+                        'status' => '403',
+                        'message' => 'Free plan does not allow creating multiple products at once'
+                    ]);
+                }
+
                 if (!$this->availableFeatures['Ilimited Products']) {
                     $numberOfProducts = $this->getNumberOfProducts();
                     
