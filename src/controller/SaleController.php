@@ -19,10 +19,10 @@ class SaleController
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
      */
-    public function __construct($requestMethod, $dbConnection)
+    public function __construct($requestMethod, $dbConnection, $availableFeatures)
     {
         $this->requestMethod = $requestMethod;
-        $this->saleModel = new SaleModel($dbConnection);
+        $this->saleModel = new SaleModel($dbConnection, $availableFeatures);
     }
 
     /**

@@ -4,16 +4,19 @@ namespace Src\Model;
 class SaleModel
 {
     private $dbConnection;
+    private $logger;
+    private $availableFeatures;
 
     /**
      * SaleModel constructor
      *
      * @param object $dbConnection Database connection object
      */
-    public function __construct($dbConnection)
+    public function __construct($dbConnection, $availableFeatures)
     {
         $this->dbConnection = $dbConnection;
         $this->logger = new LogModel($this->dbConnection);
+        $this->availableFeatures = $availableFeatures;
     }
 
     /**
@@ -95,16 +98,19 @@ class SaleModel
             }
 
             // Update product stock
-            if($saleData['UpdateStock'] === 'True') {
-                foreach ( array_keys($saleData['SellStockUpdate']) as $key ) {
-                    $stmt = $this->dbConnection->prepare('UPDATE Products SET Stock = Stock - :productQuantity WHERE BarCode = :barCode');
-                    $stmt->execute([
-                        'productQuantity' => $saleData['SellStockUpdate'][$key],
-                        'barCode' => $key
-                    ]);
+            /* STOCK CONTROL FEATURE GATING */
+            if ($this->availableFeatures['Stock Control']) {
+                if($saleData['UpdateStock'] === 'True') {
+                    foreach ( array_keys($saleData['SellStockUpdate']) as $key ) {
+                        $stmt = $this->dbConnection->prepare('UPDATE Products SET Stock = Stock - :productQuantity WHERE BarCode = :barCode');
+                        $stmt->execute([
+                            'productQuantity' => $saleData['SellStockUpdate'][$key],
+                            'barCode' => $key
+                        ]);
+                    }
                 }
             }
-
+            
             $this->logger->logMessage([
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,

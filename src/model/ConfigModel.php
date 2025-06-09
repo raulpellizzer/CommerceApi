@@ -4,16 +4,19 @@ namespace Src\Model;
 class ConfigModel
 {
     private $dbConnection;
+    private $logger;
+    private $availableFeatures;
 
     /**
      * ConfigModel constructor
      *
      * @param object $dbConnection Database connection object
      */
-    public function __construct($dbConnection)
+    public function __construct($dbConnection, $availableFeatures)
     {
         $this->dbConnection = $dbConnection;
         $this->logger = new LogModel($this->dbConnection);
+        $this->availableFeatures = $availableFeatures;
     }
 
     /**
@@ -72,6 +75,15 @@ class ConfigModel
             $this->dbConnection->beginTransaction();
 
             foreach($data as $itemConfig) { 
+
+                /* CONFIG FEATURE GATING */
+                if (!$this->availableFeatures['Config View'])
+                    continue;
+
+                /* STOCK CONTROL FEATURE GATING */
+                if (!$this->availableFeatures['Stock Control'] && $itemConfig['ConfigDescription'] === 'StockControlEnabled')
+                    continue;
+
                 $statement = $this->dbConnection->prepare('UPDATE Configuration SET ConfigValue = :configValue WHERE ConfigDescription = :configDescription');
                 $statement->execute([
                     'configValue' => $itemConfig['ConfigValue'],

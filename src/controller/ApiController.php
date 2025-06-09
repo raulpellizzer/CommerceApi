@@ -72,19 +72,6 @@ class ApiController
                 $planFeatureDataMapping = $planController->planModel->getPlanData();
                 $availableFeatures = $planController->planModel->GetAvailableFeatures($planFeatureDataMapping, $tenantPlanType);
 
-                // array(5) {
-                //     ["Ilimited Products"]=>
-                //     bool(true)
-                //     ["Products: Mass Operations"]=>
-                //     bool(true)
-                //     ["Config View"]=>
-                //     bool(true)
-                //     ["Print Receipt"]=>
-                //     bool(true)
-                //     ["Stock Control"]=>
-                //     bool(false)
-                // }
-
                 if (isset($uri[3])) {
                     $resource = trim($uri[3]);
 
@@ -122,12 +109,12 @@ class ApiController
                             }
                             
                         } else if($resource === 'configs') {
-                            $configController = new ConfigController($requestMethod, $this->dbConnection);
+                            $configController = new ConfigController($requestMethod, $this->dbConnection, $availableFeatures);
                             $response = $configController->processRequest();
                             return $response;
                         
                         } else if($resource === 'sales') {
-                            $saleController = new SaleController($requestMethod, $this->dbConnection);
+                            $saleController = new SaleController($requestMethod, $this->dbConnection, $availableFeatures);
                             $response = $saleController->processRequest();
                             return $response;
                         

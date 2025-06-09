@@ -19,10 +19,10 @@ class ConfigController
      * @param string $requestMethod The HTTP request method (GET, POST, PUT, DELETE)
      * @param object $dbConnection Database connection object
      */
-    public function __construct($requestMethod, $dbConnection)
+    public function __construct($requestMethod, $dbConnection, $availableFeatures)
     {
         $this->requestMethod = $requestMethod;
-        $this->configModel = new ConfigModel($dbConnection);
+        $this->configModel = new ConfigModel($dbConnection, $availableFeatures);
     }
 
     /**
