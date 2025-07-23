@@ -28,7 +28,7 @@ class ClientController
     {
         switch ($this->requestMethod) {
             case 'GET':
-                return $this->clientModel->getAllClients();
+                return $this->clientModel->getClients();
 
             case 'POST':
                 return $this->clientModel->createClients();

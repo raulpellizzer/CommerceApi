@@ -14,6 +14,51 @@ class ClientModel
     }
 
     /**
+     * Get all clients from the database
+     *
+     * @return array Array of clients
+     */
+    public function getClients()
+    {
+        try {
+            $sql = 'SELECT * FROM Clients';
+
+            $stmt = $this->dbConnection->prepare($sql);
+            $res = $stmt->execute();
+
+            if (!$res) {
+                http_response_code(400);
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Error fetching clients'
+                ]);
+            }
+
+            http_response_code(200);
+            return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Client'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Create a new client in the database
      *
      * @return string JSON response
@@ -124,6 +169,90 @@ class ClientModel
             return $statement->rowCount() > 0;
 
         } catch (\Exception $e) {
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Update an existing client in the database
+     *
+     * @return string JSON response
+     */
+    public function updateClients()
+    {
+        try {
+            $_POST = json_decode(file_get_contents("php://input"), true);
+
+            if (isset($_POST['Clients'])) {
+                $clients = $_POST['Clients'];
+
+                foreach ($clients as $client) {
+
+                    $statement = $this->dbConnection->prepare('UPDATE Clients SET Address = :address, PhoneNumber = :phoneNumber, Name = :name WHERE ClientId = :clientID');
+                    $res = $statement->execute([
+                        'address' => $client['Address'],
+                        'phoneNumber' => $client['PhoneNumber'],
+                        'name' => $client['Name'],
+                        'clientID' => $client['ClientId']
+                    ]);
+
+                    if ($res) {
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Updating Client Data',
+                            'args' => 'ClientId: ' . $client['ClientId'] . ', address: ' . $client['Address'] . ', phoneNumber: ' . $client['PhoneNumber'] . ', name: ' . $client['Name'],
+                            'stackTrace' => null,
+                            'type' => 'Info',
+                            'category' => 'Client'
+                        ]);
+                    }
+                }
+
+                http_response_code(201);
+                return json_encode([
+                    'status' => '201',
+                    'message' => 'Clients updated successfully'
+                ]);
+
+            } else {
+
+                $this->logger->logMessage([
+                    'currentDateTime' => date('Y-m-d H:i:s'),
+                    'file' => __CLASS__,
+                    'function' => __FUNCTION__,
+                    'message' => 'Updating Client - Bad request 400',
+                    'args' => '_POST -> clients not present',
+                    'stackTrace' => null,
+                    'type' => 'Error',
+                    'category' => 'Client'
+                ]);
+
+                http_response_code(400);
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Client already exists'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Client'
+            ]);
+
             http_response_code(500);
             return json_encode([
                 'status' => '500',
