@@ -73,7 +73,7 @@ class ProductModel
     }
 
     /**
-     * Checks in barcode already exists in the database
+     * Checks if barcode already exists in the database
      *
      * @return string JSON response
      */

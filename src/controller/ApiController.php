@@ -88,9 +88,13 @@ class ApiController
                             $stockControl = isset($_GET['stockcontrol']) ? $_GET['stockcontrol'] : null;
                             $productController = new ProductController($requestMethod, $this->dbConnection, $stockControl, $availableFeatures);
                             $response = $productController->processRequest();
-                            
                             return $response;
 
+                        } else if($resource === 'clients') {
+                            $clientController = new ClientController($requestMethod, $this->dbConnection, $availableFeatures);
+                            $response = $clientController->processRequest();
+                            return $response;
+                        
                         } else if($resource === 'reports') {
                             $reportType = isset($_GET['reporttype']) ? $_GET['reporttype'] : null;
                             $beginDate = isset($_GET['begindate']) ? $_GET['begindate'] : null;
