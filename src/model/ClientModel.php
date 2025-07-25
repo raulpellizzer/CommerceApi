@@ -261,6 +261,84 @@ class ClientModel
         }
     }
 
+    /**
+     * Delete a client from the database
+     *
+     * @return string JSON response
+     */
+    public function deleteClients()
+    {
+        try {
+            $_POST = json_decode(file_get_contents("php://input"), true);
 
+            if (isset($_POST['Clients'])) {
+                $clients = $_POST['Clients'];
 
+                foreach ($clients as $client) {
+
+                    $statement = $this->dbConnection->prepare('DELETE FROM Clients WHERE ClientId = :clientId');
+                    $res = $statement->execute([
+                        'clientId' => $client['ClientId']
+                    ]);
+
+                    if ($res) {
+                        $this->logger->logMessage([
+                            'currentDateTime' => date('Y-m-d H:i:s'),
+                            'file' => __CLASS__,
+                            'function' => __FUNCTION__,
+                            'message' => 'Deleting Client',
+                            'args' => 'clientId: ' . $client['ClientId'] . ', name: ' . $client['Name'],
+                            'stackTrace' => null,
+                            'type' => 'Info',
+                            'category' => 'Client'
+                        ]);
+                    }
+                }
+
+                http_response_code(200);
+                return json_encode([
+                    'status' => '200',
+                    'message' => 'Clients deleted successfully'
+                ]);
+
+            } else {
+
+                $this->logger->logMessage([
+                    'currentDateTime' => date('Y-m-d H:i:s'),
+                    'file' => __CLASS__,
+                    'function' => __FUNCTION__,
+                    'message' => 'Deleting Client - Bad request 400',
+                    'args' => '_POST -> clients not present',
+                    'stackTrace' => null,
+                    'type' => 'Error',
+                    'category' => 'Client'
+                ]);
+
+                http_response_code(400);
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Bad request'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Client'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
