@@ -80,10 +80,12 @@ class SaleModel
             $nextSaleId = $saleId[0]['MaxSaleId'] + 1;
 
             // Insert to Sales table
-            $stmt = $this->dbConnection->prepare('INSERT INTO Sales (SaleId, ClientId, Total, SaleDate) VALUES (:saleId, :clientId, :totalValue, :saleDate)');
+            $stmt = $this->dbConnection->prepare('INSERT INTO Sales (SaleId, ClientId, PaymentMethod, PaymentInstallment, Total, SaleDate) VALUES (:saleId, :clientId, :selectedPaymentMethod, :paymentInstallment, :totalValue, :saleDate)');
             $stmt->execute([
                 'saleId' => $nextSaleId,
                 'clientId' => $saleData['ClientId'],
+                'selectedPaymentMethod' => $saleData['SelectedPaymentMethod'],
+                'paymentInstallment' => $saleData['PaymentInstallment'],
                 'totalValue' => $saleData['Total'],
                 'saleDate' => $saleData['SaleDate']
             ]);
