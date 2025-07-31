@@ -354,7 +354,8 @@ class ClientModel
             $sql = 'SELECT s.SaleId, c.Name, s.PaymentMethod, s.PaymentInstallment, s.Total, s.SaleDate  ' .
                 'FROM Sales s ' .
                 'INNER JOIN Clients c on s.ClientId = c.ClientId ' .
-                'WHERE s.ClientId = :clientId';
+                'WHERE s.ClientId = :clientId ' . 
+                'ORDER BY s.SaleDate ASC';
 
             $statement = $this->dbConnection->prepare($sql);
             $statement->execute(['clientId' => $clientId]);
