@@ -91,7 +91,10 @@ class ApiController
                             return $response;
 
                         } else if($resource === 'clients') {
-                            $clientController = new ClientController($requestMethod, $this->dbConnection, $availableFeatures);
+                            $clientResource = trim($uri[4]);
+                            $clientId = isset($_GET['clientid']) ? $_GET['clientid'] : null;
+
+                            $clientController = new ClientController($requestMethod, $this->dbConnection, $availableFeatures, $clientResource, $clientId);
                             $response = $clientController->processRequest();
                             return $response;
                         

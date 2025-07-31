@@ -341,4 +341,41 @@ class ClientModel
             ]);
         }
     }
+
+    /**
+     * Get client sales data
+     *
+     * @param string $clientId The ID of the client
+     * @return string JSON response
+     */
+    public function getClientSalesByClientId($clientId)
+    {
+        try {
+            $sql = 'SELECT s.SaleId, c.Name, s.PaymentMethod, s.PaymentInstallment, s.Total, s.SaleDate  ' .
+                'FROM Sales s ' .
+                'INNER JOIN Clients c on s.ClientId = c.ClientId ' .
+                'WHERE s.ClientId = :clientId';
+
+            $statement = $this->dbConnection->prepare($sql);
+            $statement->execute(['clientId' => $clientId]);
+
+            if ($statement->rowCount() > 0) {
+                http_response_code(200);
+                return json_encode($statement->fetchAll(\PDO::FETCH_ASSOC));
+            } else {
+                http_response_code(404);
+                return json_encode([
+                    'status' => '404',
+                    'message' => 'No sales found for this client'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
