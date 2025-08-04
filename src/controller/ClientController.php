@@ -18,13 +18,15 @@ class ClientController
     private $clientModel;
     private $clientResource;
     private $clientId;
+    private $saleId;
 
-    public function __construct($requestMethod, $dbConnection, $availableFeatures, $clientResource, $clientId)
+    public function __construct($requestMethod, $dbConnection, $availableFeatures, $clientResource, $clientId, $saleId)
     {
         $this->requestMethod = $requestMethod;
         $this->clientModel = new ClientModel($dbConnection, $availableFeatures);
         $this->clientResource = $clientResource;
         $this->clientId = $clientId;
+        $this->saleId = $saleId;
     }
 
     /**
@@ -42,6 +44,16 @@ class ClientController
                 ]);
             }
             $response = $this->clientModel->getClientSalesByClientId($this->clientId);
+            return $response;
+
+        } else if ($this->clientResource === 'getclientsalesdetails') {
+            if ($this->saleId === null) {
+                return json_encode([
+                    'status' => '400',
+                    'message' => 'Sale ID is required for this resource'
+                ]);
+            }
+            $response = $this->clientModel->getClientSalesDetailsBySaleId($this->saleId);
             return $response;
 
         } else {
