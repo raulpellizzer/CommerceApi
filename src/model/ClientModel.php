@@ -70,9 +70,18 @@ class ClientModel
 
             if (isset($_POST['Clients'])) {
                 $clients = $_POST['Clients'];
+
+                /* CLIENT FEATURE GATING */
+                if (!$this->availableFeatures['Client Module']) {
+                    http_response_code(403);
+                    return json_encode([
+                        'status' => '403',
+                        'message' => 'Client module not available for current plan'
+                    ]);
+                }
                 
                 if (count($clients) === 1) {
-                    $clientExists = $this->checkClientExists($products[0]['Name']);
+                    $clientExists = $this->checkClientExists($clients[0]['Name']);
                     if ($clientExists) {
                         http_response_code(400);
                         return json_encode([
@@ -190,6 +199,15 @@ class ClientModel
             if (isset($_POST['Clients'])) {
                 $clients = $_POST['Clients'];
 
+                /* CLIENT FEATURE GATING */
+                if (!$this->availableFeatures['Client Module']) {
+                    http_response_code(403);
+                    return json_encode([
+                        'status' => '403',
+                        'message' => 'Client module not available for current plan'
+                    ]);
+                }
+
                 foreach ($clients as $client) {
 
                     $statement = $this->dbConnection->prepare('UPDATE Clients SET Address = :address, PhoneNumber = :phoneNumber, Name = :name WHERE ClientId = :clientID');
@@ -273,6 +291,15 @@ class ClientModel
 
             if (isset($_POST['Clients'])) {
                 $clients = $_POST['Clients'];
+
+                /* CLIENT FEATURE GATING */
+                if (!$this->availableFeatures['Client Module']) {
+                    http_response_code(403);
+                    return json_encode([
+                        'status' => '403',
+                        'message' => 'Client module not available for current plan'
+                    ]);
+                }
 
                 foreach ($clients as $client) {
 
