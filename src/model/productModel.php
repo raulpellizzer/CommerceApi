@@ -154,9 +154,9 @@ class ProductModel
                 if (count($products) === 1) {
                     $productExists = $this->checkProductExists($products[0]['BarCode']);
                     if ($productExists) {
-                        http_response_code(400);
+                        http_response_code(409);
                         return json_encode([
-                            'status' => '400',
+                            'status' => '409',
                             'message' => 'Product already exists'
                         ]);
                     }
@@ -164,14 +164,17 @@ class ProductModel
 
                 foreach ($products as $product) {
 
-                    $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, Price, Name)
-                    VALUES (:barcode, :stock, :price, :name)');
+                    $statement = $this->dbConnection->prepare('INSERT INTO Products (Barcode, Stock, PurchasePrice, SalePrice, Name, Size, Color)
+                    VALUES (:barcode, :stock, :purchasePrice, :salePrice, :name, :size, :color)');
 
                     $res = $statement->execute([
                         'barcode' => $product['BarCode'],
                         'stock' => $product['Stock'],
-                        'price' => $product['Price'],
+                        'purchasePrice' => $product['PurchasePrice'],
+                        'salePrice' => $product['SalePrice'],
                         'name' => $product['Name'],
+                        'size' => $product['Size'],
+                        'color' => $product['Color'],
                     ]);
 
                     if ($res) {
@@ -180,7 +183,7 @@ class ProductModel
                             'file' => __CLASS__,
                             'function' => __FUNCTION__,
                             'message' => 'Creating Product',
-                            'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', price: ' . $product['Price'] . ', name: ' . $product['Name'],
+                            'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', purchasePrice: ' . $product['PurchasePrice'] . ', salePrice: ' . $product['SalePrice'] . ', name: ' . $product['Name'] . ', size: ' . $product['Size'] . ', color: ' . $product['Color'],
                             'stackTrace' => null,
                             'type' => 'Info',
                             'category' => 'Product'
@@ -210,7 +213,7 @@ class ProductModel
                 http_response_code(400);
                 return json_encode([
                     'status' => '400',
-                    'message' => 'Product bad request'
+                    'message' => 'Bad request'
                 ]);
             }
 
@@ -250,12 +253,17 @@ class ProductModel
 
                 foreach ($products as $product) {
 
-                    $statement = $this->dbConnection->prepare('UPDATE Products SET Stock = :stock, Price = :price, Name = :name WHERE BarCode = :barcode');
+                    $statement = $this->dbConnection->prepare('UPDATE Products SET Stock = :stock, PurchasePrice = :purchasePrice, SalePrice = :salePrice, Name = :name, Size = :size, Color = :color
+                        WHERE BarCode = :barcode');
+
                     $res = $statement->execute([
                         'barcode' => $product['BarCode'],
                         'stock' => $product['Stock'],
-                        'price' => $product['Price'],
+                        'purchasePrice' => $product['PurchasePrice'],
+                        'salePrice' => $product['SalePrice'],
                         'name' => $product['Name'],
+                        'size' => $product['Size'],
+                        'color' => $product['Color'],
                     ]);
 
                     if ($res) {
@@ -264,7 +272,7 @@ class ProductModel
                             'file' => __CLASS__,
                             'function' => __FUNCTION__,
                             'message' => 'Updating Product Data',
-                            'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', price: ' . $product['Price'] . ', name: ' . $product['Name'],
+                            'args' => 'barCode: ' . $product['BarCode'] . ', stock: ' . $product['Stock'] . ', purchasePrice: ' . $product['PurchasePrice'] . ', salePrice: ' . $product['SalePrice'] . ', name: ' . $product['Name'] . ', size: ' . $product['Size'] . ', color: ' . $product['Color'],
                             'stackTrace' => null,
                             'type' => 'Info',
                             'category' => 'Product'
@@ -294,7 +302,7 @@ class ProductModel
                 http_response_code(400);
                 return json_encode([
                     'status' => '400',
-                    'message' => 'Product already exists'
+                    'message' => 'Bad request'
                 ]);
             }
 
