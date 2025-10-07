@@ -417,7 +417,7 @@ class ClientModel
     {
         try {
             $sql = 'SELECT s.SaleId, c.Name as ClientName, s.PaymentMethod, s.PaymentInstallment, s.Total, s.SaleDate,  ' .
-                'sd.ProductId, p.BarCode, sd.ProductQuantity, p.Name as ProductName, p.SalePrice as SalePricePerUnit ' .
+                'sd.ProductId, p.BarCode, sd.ProductQuantity, p.Name as ProductName, p.SalePrice as SalePricePerUnit, p.PurchasePrice as PurchasePricePerUnit ' .
                 'FROM Sales as s ' .
                 'INNER JOIN SaleDetails sd on s.SaleId = sd.SaleId ' . 
                 'INNER JOIN Products p on sd.ProductId = p.ProductId ' . 
