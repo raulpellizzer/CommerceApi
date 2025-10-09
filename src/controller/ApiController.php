@@ -91,7 +91,7 @@ class ApiController
                             return $response;
 
                         } else if($resource === 'clients') {
-                            $clientResource = trim($uri[4]);
+                            $clientResource = trim(isset($uri[4]) ? $uri[4] : '');
                             $clientId = isset($_GET['clientid']) ? $_GET['clientid'] : null;
                             $saleId = isset($_GET['saleid']) ? $_GET['saleid'] : null;
 
