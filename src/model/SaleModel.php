@@ -92,11 +92,14 @@ class SaleModel
 
             // Insert to SaleDetails table
             foreach ($saleData['ProductCart'] as $product) {
-                $stmt = $this->dbConnection->prepare('INSERT INTO SaleDetails (SaleId, ProductId, ProductQuantity) VALUES (:saleId, :productId, :productQuantity)');
+                $stmt = $this->dbConnection->prepare('INSERT INTO SaleDetails (SaleId, ProductId, ProductQuantity, DiscountOptionApplied, DiscountValue, TotalDiscounted) VALUES (:saleId, :productId, :productQuantity, :discountOptionApplied, :discountValue, :totalDiscounted)');
                 $stmt->execute([
                     'saleId' => $nextSaleId,
                     'productId' => $product['ProductId'],
-                    'productQuantity' => $product['Quantity']
+                    'productQuantity' => $product['Quantity'],
+                    'discountOptionApplied' => $product['DiscountOptionApplied'],
+                    'discountValue' => $product['DiscountValue'],
+                    'totalDiscounted' => $product['TotalDiscounted']
                 ]);
             }
 
@@ -118,7 +121,7 @@ class SaleModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => 'New Sale',
+                'message' => 'New Sale - ID: ' . $nextSaleId,
                 'args' => print_r($saleData, true),
                 'stackTrace' => null,
                 'type' => 'Info',
