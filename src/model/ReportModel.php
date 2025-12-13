@@ -33,7 +33,10 @@ class ReportModel
         try {
             switch ($this->reportType) {
                 case 'Sales':
-                    $sql = 'SELECT * FROM Sales WHERE SaleDate BETWEEN :beginDate AND :endDate';
+                    $sql = 'SELECT s.SaleId, c.Name, s.PaymentMethod, s.PaymentInstallment, s.Total, s.SaleDate ' .
+                    'FROM Sales s ' .
+                    'INNER JOIN Clients c on c.ClientId = s.ClientId WHERE SaleDate BETWEEN :beginDate AND :endDate ' . 
+                    'ORDER BY s.SaleDate ASC';
                     break;
 
                 case 'ProductExitOrder':
