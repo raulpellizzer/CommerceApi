@@ -93,12 +93,14 @@ class ClientModel
 
                 foreach ($clients as $client) {
 
-                    $statement = $this->dbConnection->prepare('INSERT INTO Clients (Name, Address, PhoneNumber)
-                    VALUES (:name, :address, :phonenumber)');
+                    $statement = $this->dbConnection->prepare('INSERT INTO Clients (Name, Address, Neighborhood, Extras, PhoneNumber)
+                    VALUES (:name, :address, :neighborhood, :extras, :phonenumber)');
 
                     $res = $statement->execute([
                         'name' => $client['Name'],
                         'address' => $client['Address'],
+                        'neighborhood' => $client['Neighborhood'],
+                        'extras' => $client['Extras'],
                         'phonenumber' => $client['PhoneNumber'],
                     ]);
 
@@ -108,7 +110,7 @@ class ClientModel
                             'file' => __CLASS__,
                             'function' => __FUNCTION__,
                             'message' => 'Creating Client',
-                            'args' => 'name: ' . $client['Name'] . ', address: ' . $client['Address'] . ', phoneNumber: ' . $client['PhoneNumber'],
+                            'args' => 'name: ' . $client['Name'] . ', address: ' . $client['Address'] .  ', neighborhood: ' . $client['Neighborhood'] . ', extras: ' . $client['Extras'] . ', phoneNumber: ' . $client['PhoneNumber'],
                             'stackTrace' => null,
                             'type' => 'Info',
                             'category' => 'Client'
@@ -210,11 +212,13 @@ class ClientModel
 
                 foreach ($clients as $client) {
 
-                    $statement = $this->dbConnection->prepare('UPDATE Clients SET Address = :address, PhoneNumber = :phoneNumber, Name = :name WHERE ClientId = :clientID');
+                    $statement = $this->dbConnection->prepare('UPDATE Clients SET Name = :name, Address = :address, Neighborhood = :neighborhood, Extras = :extras, PhoneNumber = :phoneNumber WHERE ClientId = :clientID');
                     $res = $statement->execute([
-                        'address' => $client['Address'],
-                        'phoneNumber' => $client['PhoneNumber'],
                         'name' => $client['Name'],
+                        'address' => $client['Address'],
+                        'neighborhood' => $client['Neighborhood'],
+                        'extras' => $client['Extras'],
+                        'phoneNumber' => $client['PhoneNumber'],
                         'clientID' => $client['ClientId']
                     ]);
 
@@ -224,7 +228,7 @@ class ClientModel
                             'file' => __CLASS__,
                             'function' => __FUNCTION__,
                             'message' => 'Updating Client Data',
-                            'args' => 'ClientId: ' . $client['ClientId'] . ', address: ' . $client['Address'] . ', phoneNumber: ' . $client['PhoneNumber'] . ', name: ' . $client['Name'],
+                            'args' => 'ClientId: ' . $client['ClientId'] . ', address: ' . $client['Address'] . ', neighborhood: ' . $client['Neighborhood'] . ', extras: ' . $client['Extras'] . ', phoneNumber: ' . $client['PhoneNumber'] . ', name: ' . $client['Name'],
                             'stackTrace' => null,
                             'type' => 'Info',
                             'category' => 'Client'
