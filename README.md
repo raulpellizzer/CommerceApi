@@ -949,6 +949,6 @@ For questions, support, or feedback:
 
 ---
 
-**Built with ❤️ by the Raul Pellizzer team**
+**Built with ❤️ by Raul Pellizzer**
 
 *Last Updated: January 2026*
