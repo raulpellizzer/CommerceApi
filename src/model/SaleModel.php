@@ -1,0 +1,159 @@
+<?php
+namespace Src\Model;
+
+class SaleModel
+{
+    private $dbConnection;
+    private $logger;
+    private $availableFeatures;
+
+    /**
+     * SaleModel constructor
+     *
+     * @param object $dbConnection Database connection object
+     */
+    public function __construct($dbConnection, $availableFeatures)
+    {
+        $this->dbConnection = $dbConnection;
+        $this->logger = new LogModel($this->dbConnection);
+        $this->availableFeatures = $availableFeatures;
+    }
+
+    /**
+     * Get the last sale from the database
+     *
+     * @return string JSON response
+     */
+    public function getLastSale() {
+        try {
+            $stmt = $this->dbConnection->prepare('SELECT SaleId, Total, SaleDate FROM Sales ORDER BY SaleId DESC LIMIT 1');
+            $stmt->execute();
+            $lastSale = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($lastSale)) {
+                http_response_code(404);
+                return json_encode([
+                    'status' => '404',
+                    'message' => 'No sales found'
+                ]);
+            }
+
+            http_response_code(200);
+            return json_encode($lastSale);
+
+        } catch (\Exception $e) {
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => null,
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Sale'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Create a new sale in the database
+     *
+     * @return string JSON response
+     */
+    public function createSale()
+    {
+        try {
+            $saleData = json_decode(file_get_contents("php://input"), true);
+            $this->dbConnection->beginTransaction();
+
+            // Get next SaleId
+            $stmt = $this->dbConnection->prepare('SELECT MAX(SaleId) as MaxSaleId FROM Sales');
+            $stmt->execute();
+            $saleId = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $nextSaleId = $saleId[0]['MaxSaleId'] + 1;
+
+            // Insert to Sales table
+            $stmt = $this->dbConnection->prepare('INSERT INTO Sales (SaleId, ClientId, PaymentMethod, PaymentInstallment, Total, SaleDate) VALUES (:saleId, :clientId, :selectedPaymentMethod, :paymentInstallment, :totalValue, :saleDate)');
+            $stmt->execute([
+                'saleId' => $nextSaleId,
+                'clientId' => $saleData['ClientId'],
+                'selectedPaymentMethod' => $saleData['SelectedPaymentMethod'],
+                'paymentInstallment' => $saleData['PaymentInstallment'],
+                'totalValue' => $saleData['Total'],
+                'saleDate' => $saleData['SaleDate']
+            ]);
+
+            // Insert to SaleDetails table
+            foreach ($saleData['ProductCart'] as $product) {
+                $stmt = $this->dbConnection->prepare('INSERT INTO SaleDetails (SaleId, ProductId, ProductQuantity, DiscountOptionApplied, DiscountValue, TotalDiscounted) VALUES (:saleId, :productId, :productQuantity, :discountOptionApplied, :discountValue, :totalDiscounted)');
+                $stmt->execute([
+                    'saleId' => $nextSaleId,
+                    'productId' => $product['ProductId'],
+                    'productQuantity' => $product['Quantity'],
+                    'discountOptionApplied' => $product['DiscountOptionApplied'],
+                    'discountValue' => $product['DiscountValue'],
+                    'totalDiscounted' => $product['TotalDiscounted']
+                ]);
+            }
+
+            // Update product stock
+            /* STOCK CONTROL FEATURE GATING */
+            if ($this->availableFeatures['Stock Control']) {
+                if($saleData['UpdateStock'] === 'True') {
+                    foreach ( array_keys($saleData['SellStockUpdate']) as $key ) {
+                        $stmt = $this->dbConnection->prepare('UPDATE Products SET Stock = Stock - :productQuantity WHERE BarCode = :barCode');
+                        $stmt->execute([
+                            'productQuantity' => $saleData['SellStockUpdate'][$key],
+                            'barCode' => $key
+                        ]);
+                    }
+                }
+            }
+            
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => 'New Sale - ID: ' . $nextSaleId,
+                'args' => print_r($saleData, true),
+                'stackTrace' => null,
+                'type' => 'Info',
+                'category' => 'Sale'
+            ]);
+
+            $this->dbConnection->commit();
+            http_response_code(200);
+            return json_encode([
+                'status' => '200',
+                'message' => 'Sale created successfully',
+            ]);
+
+        } catch (\Exception $e) {
+            $this->dbConnection->rollBack();
+
+            $this->logger->logMessage([
+                'currentDateTime' => date('Y-m-d H:i:s'),
+                'file' => __CLASS__,
+                'function' => __FUNCTION__,
+                'message' => $e->getMessage(),
+                'args' => print_r($saleData, true),
+                'stackTrace' => print_r(debug_backtrace(), true),   
+                'type' => 'Error',
+                'category' => 'Sale'
+            ]);
+
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Database connection error: ' . $e->getMessage()
+            ]);
+        }
+    }
+}
