@@ -131,11 +131,6 @@ class ApiController
                             $response = $logController->processRequest();
                             return $response;
                         
-                        } else if($resource === 'keys') {
-                            $cryptoController = new CryptoController($requestMethod, $this->dbConnection);
-                            $response = $cryptoController->processRequest();
-                            return $response;
-                        
                         } else if(Trim($resource) === '') {
                             $response = $this->EndPointIsUp();
                             return $response;

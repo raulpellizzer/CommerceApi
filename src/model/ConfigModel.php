@@ -1,11 +1,13 @@
 <?php
 namespace Src\Model;
+use Src\System\EncryptionService;
 
 class ConfigModel
 {
     private $dbConnection;
     private $logger;
     private $availableFeatures;
+    private $encryptionService;
 
     /**
      * ConfigModel constructor
@@ -17,6 +19,7 @@ class ConfigModel
         $this->dbConnection = $dbConnection;
         $this->logger = new LogModel($this->dbConnection);
         $this->availableFeatures = $availableFeatures;
+        $this->encryptionService = new EncryptionService();
     }
 
     /**
@@ -39,8 +42,25 @@ class ConfigModel
                 ]);
             }
 
+            $encryptedConfigs = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $decryptedConfigs = [];
+
+            foreach ($encryptedConfigs as $config) {
+
+                $decryptedValue = $this->encryptionService->decrypt(
+                    $config['ConfigValue'],
+                    $config['Config_IV'],
+                    $config['Config_Tag']
+                );
+
+                $decryptedConfigs[] = [
+                    'ConfigDescription' => $config['ConfigDescription'],
+                    'ConfigValue' => $decryptedValue
+                ];
+            }
+
             http_response_code(200);
-            return json_encode($stmt->fetchAll(\PDO::FETCH_ASSOC));
+            return json_encode($decryptedConfigs);
 
         } catch (\Exception $e) {
 
@@ -48,7 +68,7 @@ class ConfigModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ConfigModel::getConfigs: ' . $e->getMessage(),
                 'args' => null,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -58,7 +78,7 @@ class ConfigModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
@@ -84,9 +104,14 @@ class ConfigModel
                 if (!$this->availableFeatures['Stock Control'] && $itemConfig['ConfigDescription'] === 'StockControlEnabled')
                     continue;
 
-                $statement = $this->dbConnection->prepare('UPDATE Configuration SET ConfigValue = :configValue WHERE ConfigDescription = :configDescription');
+                $configValueEncryptedData = $this->encryptionService->encrypt($itemConfig['ConfigValue']);
+                $statement = $this->dbConnection->prepare('UPDATE Configuration SET ConfigValue = :configValue, Config_IV = :configIV, Config_Tag = :configTag
+                                                            WHERE ConfigDescription = :configDescription');
+                                                            
                 $statement->execute([
-                    'configValue' => $itemConfig['ConfigValue'],
+                    'configValue' => $configValueEncryptedData['encrypted'],
+                    'configIV' => $configValueEncryptedData['iv'],
+                    'configTag' => $configValueEncryptedData['tag'],
                     'configDescription' => $itemConfig['ConfigDescription']
                 ]);
             }
@@ -116,7 +141,7 @@ class ConfigModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ConfigModel::updateConfig: ' . $e->getMessage(),
                 'args' => null,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -126,7 +151,7 @@ class ConfigModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
