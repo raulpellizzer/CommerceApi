@@ -239,8 +239,6 @@ The API uses a **multi-tenant architecture** where:
    - `Sales` and `SaleDetails` - Sales transactions
    - `Configuration` - Tenant settings
    - `Logs` - Application logging
-   
-   💡 **Tip**: Use the provided SQL scripts in `Src/Scripts/` to create tables automatically.
 
 5. **Configure URL Rewriting**
    
@@ -388,7 +386,7 @@ The `.env.example` file provides a template for configuration:
 #### Logs
 - ⚠️ **External access disabled** - Internal use only
 
-## 🔐 Authentication
+## 🔐 User Authentication
 
 CommerceApi uses **HTTP Basic Authentication** for all API requests.
 
@@ -1005,67 +1003,6 @@ php test_query_string.php
 php test_rate_limiting.php
 ```
 
-## 🎉 Recent Development Highlights
-
-### February 4-5, 2026: Enterprise Security Implementation
-
-Over the past two days, we implemented comprehensive enterprise-grade security features:
-
-#### Day 1 (February 4, 2026) - Client Authentication Foundation
-✅ **HMAC-SHA256 Signature Authentication**
-- Created `ClientAuthMiddleware.php` for request signature validation
-- Implemented `ApiClientModel.php` for credential management
-- Built signature verification: `{METHOD}|{URI}|{BODY}|{TIMESTAMP}`
-- Added timestamp validation (±5 minutes) for replay attack prevention
-
-✅ **API Credential Management**
-- Created `generate_api_credentials.php` script
-- Implemented secure random key generation
-- Added `api_clients` database table
-- Support for multiple client types (WPF, mobile, web)
-
-✅ **Request Validation**
-- Three required headers: X-API-Key, X-Signature, X-Timestamp
-- Cryptographic signature verification
-- Active client validation
-- Integration with existing Basic Auth (dual-layer security)
-
-#### Day 2 (February 5, 2026) - Rate Limiting & Audit Logging
-✅ **Advanced Rate Limiting**
-- Created `RateLimiter.php` system component
-- Implemented sliding window algorithm
-- 60 requests/minute and 1000 requests/hour limits
-- Per-client enforcement (not per-user)
-- Multiple storage backends (database, Redis, APCu)
-- Rate limit headers in all responses
-- 429 Too Many Requests with retry-after information
-
-✅ **Comprehensive Audit Logging**
-- Created `api_request_log` table
-- Logs all requests with validation status
-- Tracks signature validity, timestamp validity
-- Records response times, IP addresses, user agents
-- Failed authentication attempt monitoring
-- Performance metrics collection
-- Security analysis queries
-
-✅ **Testing Infrastructure**
-- 8 comprehensive test scripts
-- Test valid authentication flow
-- Test invalid API key detection
-- Test signature tampering detection
-- Test timestamp expiration
-- Test rate limiting behavior
-- Test POST request signature with body
-- Test query string inclusion in signature
-
-✅ **System Enhancements**
-- Created `EncryptionService.php` for centralized encryption
-- Enhanced error handling with detailed messages
-- Added rate limit headers to all responses
-- Implemented automatic cleanup for old rate limit records
-- Added configurable security parameters via .env
-
 ### Security Architecture Evolution
 
 **Before (January 2026)**
@@ -1126,6 +1063,7 @@ curl -u "user@example.com:password" \
       "name": "Product Name",
       "price": 29.99,
       "stock": 100
+      ...
     }
   ]
 }
@@ -1510,8 +1448,6 @@ CommerceApi implements multiple security measures to protect data and prevent at
 - **Email Encryption**: User emails are encrypted using AES-256-GCM
 - **Email Hashing**: SHA-256 hashes used for email lookups
 
-⚠️ **Production Recommendation**: Implement HTTPS/SSL certificates for production deployments.
-
 ### 2. SQL Injection Prevention
 
 All database queries use **prepared statements with PDO**:
@@ -1522,8 +1458,6 @@ $statement = $this->dbConnection->prepare(
 );
 $statement->execute(['id' => $productId]);
 ```
-
-✅ **Never** use string concatenation for SQL queries.
 
 ### 3. Input Sanitization
 
@@ -1552,8 +1486,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 ```
-
-⚠️ **Production Recommendation**: Restrict `Access-Control-Allow-Origin` to specific domains instead of `*`.
 
 ### 7. Feature Access Control
 
