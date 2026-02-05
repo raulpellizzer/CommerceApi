@@ -48,7 +48,7 @@ A robust, multi-tenant REST API for managing e-commerce operations, built with v
 - **🔑 Cryptographic Keys Management**: Secure key storage and retrieval
 - **💊 Health Check Endpoint**: Monitor API status
 
-### Security Rating: 8.5/10 🏆
+### Security 🏆
 
 CommerceApi implements enterprise-grade security measures:
 
@@ -97,22 +97,23 @@ CommerceApi/
 ├── composer.json             # Composer dependencies
 ├── composer.lock             # Locked dependency versions
 ├── vendor/                   # Composer dependencies (gitignored)
-└── src/
-    ├── controller/           # Request handlers
+└── Src/
+    ├── Controller/           # Request handlers
     │   ├── ApiController.php       # Main API routing controller
     │   ├── ClientController.php    # Client operations
     │   ├── ConfigController.php    # Configuration management
-    │   ├── CryptoController.php    # Cryptographic keys
     │   ├── LogController.php       # Logging (disabled externally)
     │   ├── PlanController.php      # Plan and features
     │   ├── productController.php   # Product operations
     │   ├── ReportController.php    # Report generation
     │   ├── SaleController.php      # Sales operations
     │   └── SettingsController.php  # API settings
-    ├── model/                # Data layer
+    ├── Middleware/           # Client Authentication Middleware
+    │   ├── ClientAuthMiddleware.php       
+    ├── Model/                # Data layer
+    │   ├── ApiClientModel.php         # API client credentials
     │   ├── ClientModel.php         # Client data operations
     │   ├── ConfigModel.php         # Configuration data
-    │   ├── CryptoModel.php         # Encryption key management
     │   ├── LogModel.php            # Logging operations
     │   ├── PlanModel.php           # Plan feature mapping
     │   ├── productModel.php        # Product data operations
@@ -120,8 +121,12 @@ CommerceApi/
     │   ├── SaleModel.php           # Sales data operations
     │   ├── SettingsModel.php       # Settings data
     │   └── UserModel.php           # Authentication & user data
-    └── system/               # Core system components
-        └── DatabaseConnector.php   # Database connection handler
+    ├── Scripts/            
+    │   ├── ...         # Setup and debug scripts   
+    ├── System/                # Data layer
+        ├── DatabaseConnector.php         # DB Connection
+        ├── EncryptionService.php         # Handles encryption
+        ├── RateLimiter.php         # Handles rate limiting
 ```
 
 ### Architecture Overview
@@ -129,6 +134,7 @@ CommerceApi/
 The application follows an **MVC (Model-View-Controller)** architecture:
 
 - **Controllers**: Handle HTTP requests, validate inputs, and orchestrate business logic
+- **Middleware**: Middleware for client auth
 - **Models**: Interact with the database and contain business logic
 - **System**: Core infrastructure components (database connections, utilities)
 
@@ -170,13 +176,38 @@ The API uses a **multi-tenant architecture** where:
    
    Edit `.env` with your database credentials:
    ```env
-   DB_HOST=localhost
+   # Database Config
+   DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_NAME=your_auth_database_name
-   DB_USER=your_db_username
-   DB_PASSWORD=your_db_password
-   ENCRYPTION_KEY=your_32_character_encryption_key
-   API_DEBUG_KEY=your_debug_key_for_maintenance
+   DB_NAME=
+   DB_USER=
+   DB_PASSWORD=
+
+   # Encryption Keys
+   API_DEBUG_KEY=
+   ENCRYPTION_KEY=
+   API_ENCRYPTION_KEY=
+
+   # Client Authentication
+   # Generate with: php scripts/generate_api_credentials.php
+   WPF_APP_API_KEY=
+   WPF_APP_API_SECRET=
+
+   # Rate Limiting
+   RATE_LIMIT_ENABLED=true
+   RATE_LIMIT_STORAGE=database  # Options: database, redis, apcu
+   REDIS_HOST=127.0.0.1
+   REDIS_PORT=6379
+   REDIS_PASSWORD=
+
+   # Security
+   SIGNATURE_MAX_AGE_SECONDS=300  # 5 minutes
+   REQUEST_AUDIT_ENABLED=true
+   DEVICE_REGISTRATION_REQUIRED=false
+
+   # Production Settings
+   APP_ENV=development  # development, staging, production
+   LOG_LEVEL=warning   # debug, info, warning, error
    ```
 
 4. **Database Setup**
