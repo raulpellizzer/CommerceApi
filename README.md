@@ -320,7 +320,8 @@ The `.env.example` file provides a template for configuration:
 | `REDIS_PASSWORD` | Redis password (if applicable) | `` |
 | `SIGNATURE_MAX_AGE_SECONDS` | Timestamp tolerance window | `300` (5 minutes) |
 | `REQUEST_AUDIT_ENABLED` | Enable request audit logging | `true` |
-| `API_ENCRYPTION_KEY` | Additional encryption key | `your_key` |
+| `API_ENCRYPTION_KEY` | 32-byte key for EncryptionService (AES-256-GCM) | `your32characterencryptionkey123` |
+| `ENCRYPTION_KEY` | 32-byte key for email encryption (legacy) | `your32characterencryptionkey456` |
 
 ### Security Notes
 
@@ -1049,7 +1050,7 @@ Over the past two days, we implemented comprehensive enterprise-grade security f
 - Security analysis queries
 
 ✅ **Testing Infrastructure**
-- 7 comprehensive test scripts
+- 8 comprehensive test scripts
 - Test valid authentication flow
 - Test invalid API key detection
 - Test signature tampering detection
