@@ -57,7 +57,7 @@ class ProductModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ProductModel::getAllProducts: ' . $e->getMessage(),
                 'args' => null,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -67,7 +67,7 @@ class ProductModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
@@ -90,7 +90,7 @@ class ProductModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
@@ -112,7 +112,7 @@ class ProductModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
@@ -223,7 +223,7 @@ class ProductModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ProductModel::createProducts: ' . $e->getMessage(),
                 'args' => null,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -233,7 +233,7 @@ class ProductModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
@@ -312,7 +312,7 @@ class ProductModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ProductModel::updateProducts: ' . $e->getMessage(),
                 'args' => null,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -322,7 +322,7 @@ class ProductModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }
@@ -393,7 +393,7 @@ class ProductModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ProductModel::deleteProducts: ' . $e->getMessage(),
                 'args' => null,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -403,7 +403,7 @@ class ProductModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }

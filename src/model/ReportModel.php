@@ -1,9 +1,11 @@
 <?php
 namespace Src\Model;
+use Src\System\EncryptionService;
 
 class ReportModel 
 {
     private $dbConnection;
+    private $encryptionService;
 
     /**
      * ReportModel constructor
@@ -20,6 +22,7 @@ class ReportModel
         $this->beginDate = $beginDate;
         $this->endDate = $endDate;
         $this->logger = new LogModel($this->dbConnection);
+        $this->encryptionService = new EncryptionService();
     }
 
     /**
@@ -33,7 +36,7 @@ class ReportModel
         try {
             switch ($this->reportType) {
                 case 'Sales':
-                    $sql = 'SELECT s.SaleId, c.Name, s.PaymentMethod, s.PaymentInstallment, s.Total, s.SaleDate ' .
+                    $sql = 'SELECT s.SaleId, c.Name, c.Name_IV, c.Name_Tag, s.PaymentMethod, s.PaymentInstallment, s.Total, s.SaleDate ' .
                     'FROM Sales s ' .
                     'INNER JOIN Clients c on c.ClientId = s.ClientId WHERE SaleDate BETWEEN :beginDate AND :endDate ' . 
                     'ORDER BY s.SaleDate ASC';
@@ -77,9 +80,25 @@ class ReportModel
                 'endDate' => $this->endDate
             ]);
 
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            http_response_code(200);
-            return json_encode($result);
+            if ($this->reportType === 'Sales') {
+                $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+
+                foreach ($rows as &$row) {
+                    $decryptedName = $this->encryptionService->decrypt(
+                        $row['Name'],
+                        $row['Name_IV'],
+                        $row['Name_Tag']
+                    );
+                    $row['Name'] = $decryptedName;
+                }
+
+                http_response_code(200);
+                return json_encode($rows);
+            } else {
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                http_response_code(200);
+                return json_encode($result);
+            }
 
         } catch (\Exception $e) {
 
@@ -87,7 +106,7 @@ class ReportModel
                 'currentDateTime' => date('Y-m-d H:i:s'),
                 'file' => __CLASS__,
                 'function' => __FUNCTION__,
-                'message' => $e->getMessage(),
+                'message' => 'Error in ReportModel::getReportData: ' . $e->getMessage(),
                 'args' => 'beginDate: ' . $this->beginDate . ', endDate: ' . $this->endDate,
                 'stackTrace' => print_r(debug_backtrace(), true),   
                 'type' => 'Error',
@@ -97,7 +116,7 @@ class ReportModel
             http_response_code(500);
             return json_encode([
                 'status' => '500',
-                'message' => 'Database connection error: ' . $e->getMessage()
+                'message' => 'An error occurred processing your request'
             ]);
         }
     }

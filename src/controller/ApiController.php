@@ -1,6 +1,7 @@
 <?php
 namespace Src\Controller;
 use Src\Model\UserModel;
+use Src\Middleware\ClientAuthMiddleware;
 use Src\System;
 
 class ApiController
@@ -8,6 +9,7 @@ class ApiController
     private $dbConnection;
     private $userModel;
     private $settingsController;
+    private $clientAuth;
 
     /**
      * ApiController constructor
@@ -19,6 +21,7 @@ class ApiController
         $this->dbConnection = $dbConnection;
         $this->userModel = new UserModel($dbConnection, $user, $pass);
         $this->settingsController = new SettingsController($dbConnection);
+        $this->clientAuth = new ClientAuthMiddleware($dbConnection);
     }
 
     /**
@@ -44,6 +47,9 @@ class ApiController
     public function processRequest($requestMethod, $uri)
     {
         $resource = "";
+
+        // Client Authentication
+        $client = $this->clientAuth->validateClient();
 
         // Authenticate the user
         if($this->userModel->authenticate() === false) {
@@ -129,11 +135,6 @@ class ApiController
                         } else if($resource === 'logs') {
                             $logController = new LogController($requestMethod, $this->dbConnection);
                             $response = $logController->processRequest();
-                            return $response;
-                        
-                        } else if($resource === 'keys') {
-                            $cryptoController = new CryptoController($requestMethod, $this->dbConnection);
-                            $response = $cryptoController->processRequest();
                             return $response;
                         
                         } else if(Trim($resource) === '') {

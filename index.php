@@ -1,4 +1,13 @@
 <?php
+	if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
+		if (!empty($_SERVER['HTTP_HOST']) && !empty($_SERVER['REQUEST_URI'])) {
+			$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			header('HTTP/1.1 301 Moved Permanently');
+			header('Location: ' . $redirect);
+			exit();
+		}
+	}
+
 	header("Access-Control-Allow-Origin: *");
 	header("Content-Type: application/json; charset=UTF-8");
 	header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");

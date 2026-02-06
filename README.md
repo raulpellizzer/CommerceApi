@@ -14,6 +14,8 @@ A robust, multi-tenant REST API for managing e-commerce operations, built with v
 - [Configuration](#-configuration)
 - [API Endpoints](#-api-endpoints)
 - [Authentication](#-authentication)
+- [Client Authentication](#-client-authentication)
+- [Security Implementation](#-security-implementation)
 - [Request/Response Examples](#-requestresponse-examples)
 - [Features & Plan System](#-features--plan-system)
 - [Maintenance Mode](#-maintenance-mode)
@@ -32,6 +34,10 @@ A robust, multi-tenant REST API for managing e-commerce operations, built with v
 - **🏢 Multi-Tenant Architecture**: Isolated database per tenant for data security
 - **📊 Plan-Based Feature Gating**: Control feature access based on subscription plans
 - **🔐 HTTP Basic Authentication**: Secure API access with encrypted credentials
+- **🔒 Client Authentication (API Key + HMAC-SHA256)**: Cryptographic request signing for tamper-proof API access
+- **⏱️ Rate Limiting**: 60 requests/minute, 1000 requests/hour per client
+- **📊 Request Audit Logging**: Complete tracking of all API requests with signature validation
+- **🛡️ Replay Attack Prevention**: Timestamp validation (±5 minutes)
 - **📦 Product Management**: Full CRUD operations with optional stock control
 - **👥 Client Management**: Manage clients with nested sales resources
 - **💰 Sales Management**: Track and manage sales transactions
@@ -39,8 +45,35 @@ A robust, multi-tenant REST API for managing e-commerce operations, built with v
 - **⚙️ Configuration Management**: Dynamic API settings and configurations
 - **🔧 Maintenance Mode**: Control API availability with debug key override
 - **📝 Comprehensive Logging**: Track errors, info, and execution traces
-- **🔑 Cryptographic Keys Management**: Secure key storage and retrieval
 - **💊 Health Check Endpoint**: Monitor API status
+
+### Security 🏆
+
+CommerceApi implements enterprise-grade security measures:
+
+✅ **Multi-Layer Authentication**
+- Client authentication (API Key + HMAC-SHA256 signatures)
+- User authentication (Basic Auth with bcrypt password hashing)
+
+✅ **Request Integrity & Protection**
+- Cryptographic request signing prevents tampering
+- Timestamp validation prevents replay attacks (±5 minute window)
+- Rate limiting (60/min, 1000/hour per client)
+
+✅ **Complete Audit Trail**
+- All requests logged with signature validation status
+- Failed authentication attempts tracked
+- IP address and performance metrics recorded
+
+✅ **Data Security**
+- Email encryption with AES-256-GCM
+- SQL injection prevention with prepared statements
+- Multi-tenant database isolation
+
+✅ **API Protection**
+- Rate limiting prevents brute force and abuse
+- Plan-based feature gating
+- Maintenance mode with debug key override
 
 ## 🛠 Technology Stack
 
@@ -63,22 +96,23 @@ CommerceApi/
 ├── composer.json             # Composer dependencies
 ├── composer.lock             # Locked dependency versions
 ├── vendor/                   # Composer dependencies (gitignored)
-└── src/
-    ├── controller/           # Request handlers
+└── Src/
+    ├── Controller/           # Request handlers
     │   ├── ApiController.php       # Main API routing controller
     │   ├── ClientController.php    # Client operations
     │   ├── ConfigController.php    # Configuration management
-    │   ├── CryptoController.php    # Cryptographic keys
     │   ├── LogController.php       # Logging (disabled externally)
     │   ├── PlanController.php      # Plan and features
     │   ├── productController.php   # Product operations
     │   ├── ReportController.php    # Report generation
     │   ├── SaleController.php      # Sales operations
     │   └── SettingsController.php  # API settings
-    ├── model/                # Data layer
+    ├── Middleware/           # Client Authentication Middleware
+    │   └── ClientAuthMiddleware.php       
+    ├── Model/                # Data layer
+    │   ├── ApiClientModel.php      # API client credentials & auth
     │   ├── ClientModel.php         # Client data operations
     │   ├── ConfigModel.php         # Configuration data
-    │   ├── CryptoModel.php         # Encryption key management
     │   ├── LogModel.php            # Logging operations
     │   ├── PlanModel.php           # Plan feature mapping
     │   ├── productModel.php        # Product data operations
@@ -86,22 +120,37 @@ CommerceApi/
     │   ├── SaleModel.php           # Sales data operations
     │   ├── SettingsModel.php       # Settings data
     │   └── UserModel.php           # Authentication & user data
-    └── system/               # Core system components
-        └── DatabaseConnector.php   # Database connection handler
+    ├── Scripts/              # Setup and testing scripts
+    │   ├── generate_api_credentials.php    # Generate API keys/secrets
+    │   ├── test_client_auth_valid.php      # Test valid auth
+    │   ├── test_client_auth_invalid_key.php
+    │   ├── test_client_auth_invalid_signature.php
+    │   ├── test_client_auth_expired.php
+    │   ├── test_rate_limiting.php
+    │   ├── test_post_request.php
+    │   └── test_query_string.php
+    └── System/               # Core infrastructure
+        ├── DatabaseConnector.php   # Database connection handler
+        ├── EncryptionService.php   # AES-256-GCM encryption
+        └── RateLimiter.php         # Rate limiting engine
 ```
 
 ### Architecture Overview
 
-The application follows an **MVC (Model-View-Controller)** architecture:
+The application follows an **MVC (Model-View-Controller)** architecture with **Middleware** for cross-cutting concerns:
 
 - **Controllers**: Handle HTTP requests, validate inputs, and orchestrate business logic
+- **Middleware**: Client authentication, rate limiting, and request validation
 - **Models**: Interact with the database and contain business logic
-- **System**: Core infrastructure components (database connections, utilities)
+- **System**: Core infrastructure components (database connections, encryption, rate limiting)
 
 The API uses a **multi-tenant architecture** where:
-1. Initial authentication occurs against a central authentication database
-2. Upon successful authentication, the API connects to the tenant-specific database
-3. All subsequent operations are performed in the tenant's isolated database
+1. Client authentication occurs via HMAC signature validation (ClientAuthMiddleware)
+2. User authentication occurs against a central authentication database
+3. Upon successful authentication, the API connects to the tenant-specific database
+4. All subsequent operations are performed in the tenant's isolated database
+5. Rate limiting is enforced per API client
+6. All requests are logged to api_request_log for auditing
 
 ## 🚀 Installation & Setup
 
@@ -136,13 +185,38 @@ The API uses a **multi-tenant architecture** where:
    
    Edit `.env` with your database credentials:
    ```env
-   DB_HOST=localhost
+   # Database Config
+   DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_NAME=your_auth_database_name
-   DB_USER=your_db_username
-   DB_PASSWORD=your_db_password
-   ENCRYPTION_KEY=your_32_character_encryption_key
-   API_DEBUG_KEY=your_debug_key_for_maintenance
+   DB_NAME=
+   DB_USER=
+   DB_PASSWORD=
+
+   # Encryption Keys
+   API_DEBUG_KEY=
+   ENCRYPTION_KEY=
+   API_ENCRYPTION_KEY=
+
+   # Client Authentication
+   # Generate with: php scripts/generate_api_credentials.php
+   WPF_APP_API_KEY=
+   WPF_APP_API_SECRET=
+
+   # Rate Limiting
+   RATE_LIMIT_ENABLED=true
+   RATE_LIMIT_STORAGE=database  # Options: database, redis, apcu
+   REDIS_HOST=127.0.0.1
+   REDIS_PORT=6379
+   REDIS_PASSWORD=
+
+   # Security
+   SIGNATURE_MAX_AGE_SECONDS=300  # 5 minutes
+   REQUEST_AUDIT_ENABLED=true
+   DEVICE_REGISTRATION_REQUIRED=false
+
+   # Production Settings
+   APP_ENV=development  # development, staging, production
+   LOG_LEVEL=warning   # debug, info, warning, error
    ```
 
 4. **Database Setup**
@@ -152,12 +226,19 @@ The API uses a **multi-tenant architecture** where:
    CREATE DATABASE commerce_api_auth;
    ```
    
-   Create necessary tables (refer to your schema):
-   - `user` table for authentication
+   Create necessary tables in **authentication database**:
+   - `user` table for user authentication
+   - `api_clients` table for API client credentials
+   - `api_request_log` table for request auditing
+   - `api_rate_limits` table for rate limit tracking (if using database storage)
    - `PlanFeature` and `Feature` tables for plan management
-   - `Logs` table for logging
    
-   Create tenant-specific databases for each client.
+   Create **tenant-specific databases** for each client with these tables:
+   - `Products` - Product catalog
+   - `Clients` - Customer management
+   - `Sales` and `SaleDetails` - Sales transactions
+   - `Configuration` - Tenant settings
+   - `Logs` - Application logging
 
 5. **Configure URL Rewriting**
    
@@ -183,7 +264,24 @@ The API uses a **multi-tenant architecture** where:
    chmod 644 .env
    ```
 
-7. **Test Installation**
+7. **Setup Client Authentication**
+   
+   Generate API credentials for your client applications:
+   ```bash
+   cd src/Scripts
+   php generate_api_credentials.php
+   ```
+   
+   Follow the interactive prompts to create credentials. Then add the generated keys to your `.env` file:
+   ```env
+   # Client Authentication (add these)
+   WPF_APP_API_KEY=your_generated_api_key_here
+   WPF_APP_API_SECRET=your_generated_api_secret_here
+   ```
+   
+   ⚠️ **Important**: Keep API secrets secure. Never commit them to version control or expose them in client-side code.
+
+8. **Test Installation**
    ```bash
    curl http://localhost/CommerceApi/
    ```
@@ -211,6 +309,17 @@ The `.env.example` file provides a template for configuration:
 | `DB_PASSWORD` | Database password | `yourpassword` |
 | `ENCRYPTION_KEY` | 32-character key for AES-256-GCM encryption | `your32characterencryptionkey123` |
 | `API_DEBUG_KEY` | Debug key for maintenance mode override | `debug-secret-key` |
+| `WPF_APP_API_KEY` | API key for WPF client application | `generated_via_script` |
+| `WPF_APP_API_SECRET` | API secret for HMAC signatures | `generated_via_script` |
+| `RATE_LIMIT_ENABLED` | Enable/disable rate limiting | `true` |
+| `RATE_LIMIT_STORAGE` | Storage backend for rate limiting | `database` (or `redis`, `apcu`) |
+| `REDIS_HOST` | Redis server hostname (if using Redis) | `127.0.0.1` |
+| `REDIS_PORT` | Redis server port | `6379` |
+| `REDIS_PASSWORD` | Redis password (if applicable) | `` |
+| `SIGNATURE_MAX_AGE_SECONDS` | Timestamp tolerance window | `300` (5 minutes) |
+| `REQUEST_AUDIT_ENABLED` | Enable request audit logging | `true` |
+| `API_ENCRYPTION_KEY` | 32-byte key for EncryptionService (AES-256-GCM) | `your32characterencryptionkey123` |
+| `ENCRYPTION_KEY` | 32-byte key for email encryption (legacy) | `your32characterencryptionkey456` |
 
 ### Security Notes
 
@@ -274,13 +383,10 @@ The `.env.example` file provides a template for configuration:
 #### Plans
 - **GET** `/CommerceApi/plan` - Get plan data and available features
 
-#### Cryptographic Keys
-- **GET** `/CommerceApi/keys` - Get cryptographic keys
-
 #### Logs
 - ⚠️ **External access disabled** - Internal use only
 
-## 🔐 Authentication
+## 🔐 User Authentication
 
 CommerceApi uses **HTTP Basic Authentication** for all API requests.
 
@@ -333,6 +439,609 @@ The API checks:
 }
 ```
 
+## 🔒 Client Authentication
+
+CommerceApi implements **enterprise-grade client authentication** using HMAC-SHA256 signatures to ensure request integrity and prevent tampering. This is in addition to user authentication and provides a robust multi-layer security model.
+
+### Authentication Layers
+
+CommerceApi uses a **two-layer authentication system**:
+
+#### Layer 1: Client Authentication (API Key + HMAC Signature)
+- **Purpose**: Verifies the request comes from an authorized application
+- **Implementation**: API Key identification + HMAC-SHA256 signature validation
+- **Headers Required**:
+  - `X-API-Key`: Identifies the client application
+  - `X-Signature`: HMAC-SHA256 signature of the request
+  - `X-Timestamp`: Unix timestamp (validated within ±5 minutes)
+
+#### Layer 2: User Authentication (Basic Auth)
+- **Purpose**: Identifies which user is making the request
+- **Implementation**: Email/password with bcrypt hashing
+- **Header**: `Authorization: Basic {base64(email:password)}`
+
+### How HMAC Signature Works
+
+The signature ensures request integrity by signing a message containing all critical request components:
+
+**Message Format**:
+```
+{METHOD}|{URI}|{BODY}|{TIMESTAMP}
+```
+
+**PHP Example**:
+```php
+// Request components
+$method = 'GET';                           // HTTP method
+$uri = '/CommerceApi/products';            // Full URI path (with query string if present)
+$body = '';                                // Request body (empty for GET)
+$timestamp = time();                       // Current Unix timestamp
+
+// Build message
+$message = "{$method}|{$uri}|{$body}|{$timestamp}";
+
+// Generate HMAC-SHA256 signature
+$signature = hash_hmac('sha256', $message, $apiSecret);
+```
+
+**Important Notes**:
+- The URI must include the full path and query string (e.g., `/CommerceApi/products?stockcontrol=true`)
+- For POST/PUT requests, the body must be included in the signature calculation
+- The timestamp must be within ±5 minutes of server time to prevent replay attacks
+- The API secret is never transmitted over the network
+
+### Request Example with Client Authentication
+
+**GET Request**:
+```bash
+# Generate timestamp
+TIMESTAMP=$(date +%s)
+
+# Generate signature (replace with your secret)
+API_SECRET="your_api_secret_here"
+METHOD="GET"
+URI="/CommerceApi/products"
+BODY=""
+MESSAGE="${METHOD}|${URI}|${BODY}|${TIMESTAMP}"
+SIGNATURE=$(echo -n "$MESSAGE" | openssl dgst -sha256 -hmac "$API_SECRET" | cut -d' ' -f2)
+
+# Make request
+curl -X GET https://yourapi.com/CommerceApi/products \
+  -H "X-API-Key: abc123..." \
+  -H "X-Signature: $SIGNATURE" \
+  -H "X-Timestamp: $TIMESTAMP" \
+  -u "user@example.com:password"
+```
+
+**POST Request with Body**:
+```bash
+# Request body
+BODY='{"name":"New Product","price":19.99}'
+
+# Generate timestamp
+TIMESTAMP=$(date +%s)
+
+# Generate signature
+API_SECRET="your_api_secret_here"
+METHOD="POST"
+URI="/CommerceApi/products"
+MESSAGE="${METHOD}|${URI}|${BODY}|${TIMESTAMP}"
+SIGNATURE=$(echo -n "$MESSAGE" | openssl dgst -sha256 -hmac "$API_SECRET" | cut -d' ' -f2)
+
+# Make request
+curl -X POST https://yourapi.com/CommerceApi/products \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: abc123..." \
+  -H "X-Signature: $SIGNATURE" \
+  -H "X-Timestamp: $TIMESTAMP" \
+  -u "user@example.com:password" \
+  -d "$BODY"
+```
+
+### Authentication Failure Responses
+
+**Invalid API Key** (403 Forbidden):
+```json
+{
+  "status": "403",
+  "message": "Invalid API key"
+}
+```
+
+**Invalid Signature** (403 Forbidden):
+```json
+{
+  "status": "403",
+  "message": "Invalid request signature"
+}
+```
+
+**Expired Timestamp** (403 Forbidden):
+```json
+{
+  "status": "403",
+  "message": "Request timestamp expired"
+}
+```
+
+## 🛡️ Security Implementation
+
+This section documents the complete security infrastructure including client authentication setup, rate limiting, and audit logging.
+
+### Setup - Generate API Credentials
+
+Use the provided script to generate secure API credentials for your client applications:
+
+```bash
+cd src/Scripts
+php generate_api_credentials.php
+```
+
+**Interactive Prompts**:
+```
+Enter client details:
+---------------------------------------------
+Client Name (e.g., 'WPF Desktop App'): My Application
+Client Version (default: 1.0.0): 1.0.0
+Client Type [wpf_desktop/mobile_ios/mobile_android/web] (default: wpf_desktop): wpf_desktop
+Rate Limit (per minute, default: 60): 60
+Rate Limit (per hour, default: 1000): 1000
+```
+
+**Output Example**:
+```
+============================================
+API CLIENT CREDENTIALS GENERATED
+============================================
+
+Client Details:
+  Name: My Application
+  Version: 1.0.0
+  Type: wpf_desktop
+
+Credentials (SAVE THESE SECURELY):
+---------------------------------------------
+API Key:    a1b2c3d4e5f6g7h8_1770298500
+API Secret: 9i8j7k6l5m4n3o2p1q0r9s8t7u6v5w4x3y2z1a0b9c8d7e6f5g4h3i2j1k0l9m8n7o6p5q4r3s2t1u0v9w8x
+
+Rate Limits:
+  Per Minute: 60 requests
+  Per Hour: 1000 requests
+```
+
+**Add to .env File**:
+```env
+# Client Authentication
+WPF_APP_API_KEY=a1b2c3d4e5f6g7h8_1770298500
+WPF_APP_API_SECRET=9i8j7k6l5m4n3o2p1q0r9s8t7u6v5w4x3y2z1a0b9c8d7e6f5g4h3i2j1k0l9m8n7o6p5q4r3s2t1u0v9w8x
+```
+
+⚠️ **Security Warning**: Store API secrets securely. Never commit them to version control or expose them in client-side code.
+
+### Database Schema - api_clients Table
+
+The API client credentials are stored in the authentication database:
+
+```sql
+CREATE TABLE api_clients (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    client_name VARCHAR(255) NOT NULL,
+    api_key VARCHAR(255) NOT NULL UNIQUE,
+    api_secret VARCHAR(255) NOT NULL,
+    client_version VARCHAR(50),
+    client_type VARCHAR(50),
+    is_active TINYINT(1) DEFAULT 1,
+    rate_limit_per_minute INT DEFAULT 60,
+    rate_limit_per_hour INT DEFAULT 1000,
+    last_request_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_api_key (api_key),
+    INDEX idx_active (is_active)
+);
+```
+
+**Key Fields**:
+- `api_key`: Unique identifier for the client (transmitted with requests)
+- `api_secret`: Secret key for HMAC signature generation (never transmitted)
+- `is_active`: Enable/disable client access without deleting the record
+- `rate_limit_per_minute` / `rate_limit_per_hour`: Per-client rate limits
+
+### Rate Limiting Configuration
+
+Rate limiting is enforced **per API client** (not per user) to prevent API abuse and protect server resources.
+
+**Default Limits**:
+- **60 requests per minute** (1-minute sliding window)
+- **1000 requests per hour** (1-hour sliding window)
+
+**Implementation**:
+- Database-based request tracking (with optional Redis support)
+- Sliding window algorithm for accurate rate limiting
+- Per-client enforcement using API key
+- Automatic cleanup of old records
+
+**Rate Limit Headers** (included in all responses):
+```
+X-RateLimit-Limit-Minute: 60
+X-RateLimit-Remaining-Minute: 45
+X-RateLimit-Limit-Hour: 1000
+X-RateLimit-Remaining-Hour: 850
+```
+
+**Rate Limit Exceeded Response** (429 Too Many Requests):
+```json
+{
+  "status": "429",
+  "message": "Rate limit exceeded. Try again in 42 seconds."
+}
+```
+
+**Custom Rate Limits**:
+Each client can have custom rate limits set in the `api_clients` table. Update the values directly:
+```sql
+UPDATE api_clients 
+SET rate_limit_per_minute = 120, 
+    rate_limit_per_hour = 2000 
+WHERE api_key = 'your_api_key';
+```
+
+### Request Audit Logging
+
+All API requests are logged to the `api_request_log` table for security auditing, compliance, and monitoring.
+
+**Database Schema**:
+```sql
+CREATE TABLE api_request_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    api_key VARCHAR(255),
+    authenticated_user VARCHAR(255),
+    endpoint VARCHAR(500),
+    http_method VARCHAR(10),
+    http_status_code INT,
+    request_ip VARCHAR(45),
+    signature_valid TINYINT(1),
+    timestamp_valid TINYINT(1),
+    response_time_ms INT,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_api_key (api_key),
+    INDEX idx_timestamp (created_at),
+    INDEX idx_signature_valid (signature_valid),
+    INDEX idx_status (http_status_code)
+);
+```
+
+**Logged Information**:
+- **api_key**: Which client made the request
+- **authenticated_user**: Which user was authenticated (from Basic Auth)
+- **endpoint**: Full URI path and query string
+- **http_method**: GET, POST, PUT, DELETE
+- **http_status_code**: Response status (200, 403, 429, etc.)
+- **request_ip**: Source IP address
+- **signature_valid**: Whether HMAC signature was valid (1=valid, 0=invalid)
+- **timestamp_valid**: Whether timestamp was within acceptable range
+- **response_time_ms**: Request processing time in milliseconds
+
+**Monitoring Queries**:
+
+Find failed authentication attempts:
+```sql
+SELECT api_key, endpoint, COUNT(*) as failed_attempts
+FROM api_request_log
+WHERE signature_valid = 0 
+  AND created_at > NOW() - INTERVAL 1 HOUR
+GROUP BY api_key, endpoint
+ORDER BY failed_attempts DESC;
+```
+
+Track suspicious activity (multiple failed signatures):
+```sql
+SELECT api_key, request_ip, COUNT(*) as failures,
+       MIN(created_at) as first_attempt,
+       MAX(created_at) as last_attempt
+FROM api_request_log
+WHERE signature_valid = 0
+  AND created_at > NOW() - INTERVAL 24 HOUR
+GROUP BY api_key, request_ip
+HAVING failures > 10
+ORDER BY failures DESC;
+```
+
+Monitor rate limit violations:
+```sql
+SELECT api_key, endpoint, COUNT(*) as rate_limit_hits
+FROM api_request_log
+WHERE http_status_code = 429
+  AND created_at > NOW() - INTERVAL 1 DAY
+GROUP BY api_key, endpoint
+ORDER BY rate_limit_hits DESC;
+```
+
+Performance monitoring:
+```sql
+SELECT endpoint, 
+       AVG(response_time_ms) as avg_ms,
+       MAX(response_time_ms) as max_ms,
+       COUNT(*) as requests
+FROM api_request_log
+WHERE created_at > NOW() - INTERVAL 1 HOUR
+  AND http_status_code = 200
+GROUP BY endpoint
+ORDER BY avg_ms DESC;
+```
+
+### Complete Database Schema
+
+CommerceApi uses two types of databases:
+1. **Authentication Database** - Centralized authentication and API client management
+2. **Tenant Databases** - Per-tenant data isolation
+
+#### Authentication Database Tables
+
+**api_clients** - API Client Credentials
+```sql
+CREATE TABLE api_clients (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    client_name VARCHAR(255) NOT NULL,
+    api_key VARCHAR(255) NOT NULL UNIQUE,
+    api_secret VARCHAR(255) NOT NULL,
+    client_version VARCHAR(50),
+    client_type VARCHAR(50),
+    is_active TINYINT(1) DEFAULT 1,
+    rate_limit_per_minute INT DEFAULT 60,
+    rate_limit_per_hour INT DEFAULT 1000,
+    last_request_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_api_key (api_key),
+    INDEX idx_active (is_active)
+);
+```
+
+**api_request_log** - Request Audit Trail
+```sql
+CREATE TABLE api_request_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    api_key VARCHAR(255),
+    authenticated_user VARCHAR(255),
+    endpoint VARCHAR(500),
+    http_method VARCHAR(10),
+    http_status_code INT,
+    request_ip VARCHAR(45),
+    signature_valid TINYINT(1),
+    timestamp_valid TINYINT(1),
+    response_time_ms INT,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_api_key (api_key),
+    INDEX idx_timestamp (created_at),
+    INDEX idx_signature_valid (signature_valid),
+    INDEX idx_status (http_status_code)
+);
+```
+
+**api_rate_limits** - Rate Limit Tracking (database storage mode)
+```sql
+CREATE TABLE api_rate_limits (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    api_key VARCHAR(255) NOT NULL,
+    request_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_api_key_time (api_key, request_time)
+);
+```
+
+**user** - User Authentication
+```sql
+CREATE TABLE user (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email_encrypted BLOB NOT NULL,
+    email_iv BLOB NOT NULL,
+    email_tag BLOB NOT NULL,
+    email_hash VARCHAR(64) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    tenant_database VARCHAR(255) NOT NULL,
+    tenant_name VARCHAR(255),
+    plan_type INT DEFAULT 1,
+    is_active TINYINT(1) DEFAULT 1,
+    is_verified TINYINT(1) DEFAULT 0,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email_hash (email_hash),
+    INDEX idx_tenant (tenant_database)
+);
+```
+
+**Feature** and **PlanFeature** - Feature Gating
+```sql
+CREATE TABLE Feature (
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL UNIQUE,
+    Description TEXT
+);
+
+CREATE TABLE PlanFeature (
+    PlanId INT NOT NULL,
+    FeatureId INT NOT NULL,
+    PRIMARY KEY (PlanId, FeatureId),
+    FOREIGN KEY (FeatureId) REFERENCES Feature(Id)
+);
+```
+
+#### Tenant Database Tables
+
+Each tenant has an isolated database with these tables:
+
+**Products** - Product Catalog
+```sql
+CREATE TABLE Products (
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL,
+    Price DECIMAL(10,2),
+    Stock INT DEFAULT 0,
+    Barcode VARCHAR(100),
+    Category VARCHAR(100)
+);
+```
+
+**Clients** - Customer Management
+```sql
+CREATE TABLE Clients (
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL,
+    Address VARCHAR(500),
+    Neighborhood VARCHAR(255),
+    Extras TEXT,
+    PhoneNumber VARCHAR(50)
+);
+```
+
+**Sales** and **SaleDetails** - Sales Tracking
+```sql
+CREATE TABLE Sales (
+    SaleId INT PRIMARY KEY AUTO_INCREMENT,
+    ClientId INT,
+    PaymentMethod VARCHAR(100),
+    PaymentInstallment INT DEFAULT 1,
+    Total DECIMAL(10,2),
+    SaleDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ClientId) REFERENCES Clients(Id)
+);
+
+CREATE TABLE SaleDetails (
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    SaleId INT NOT NULL,
+    ProductId INT NOT NULL,
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(10,2),
+    FOREIGN KEY (SaleId) REFERENCES Sales(SaleId),
+    FOREIGN KEY (ProductId) REFERENCES Products(Id)
+);
+```
+
+**Configuration** - Tenant-Specific Settings
+```sql
+CREATE TABLE Configuration (
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    ConfigDescription VARCHAR(255) NOT NULL UNIQUE,
+    ConfigValue TEXT
+);
+```
+
+**Logs** - Application Logging
+```sql
+CREATE TABLE Logs (
+    Id INT PRIMARY KEY AUTO_INCREMENT,
+    ExecutionTime DATETIME,
+    File VARCHAR(255),
+    Function VARCHAR(255),
+    Message TEXT,
+    Args TEXT,
+    StackTrace TEXT,
+    Type VARCHAR(50),
+    Category VARCHAR(100),
+    INDEX idx_timestamp (ExecutionTime),
+    INDEX idx_type (Type)
+);
+```
+
+### Testing Scripts
+
+The `src/Scripts/` directory contains comprehensive test scripts for validating the security implementation:
+
+**Valid Authentication Test**:
+```bash
+php test_client_auth_valid.php
+```
+Tests a properly signed request. Expected result: **200 OK**
+
+**Invalid API Key Test**:
+```bash
+php test_client_auth_invalid_key.php
+```
+Tests with a non-existent API key. Expected result: **403 Forbidden** with "Invalid API key"
+
+**Invalid Signature Test**:
+```bash
+php test_client_auth_invalid_signature.php
+```
+Tests with an incorrect HMAC signature. Expected result: **403 Forbidden** with "Invalid request signature"
+
+**Expired Timestamp Test**:
+```bash
+php test_client_auth_expired.php
+```
+Tests with a timestamp outside the ±5 minute window. Expected result: **403 Forbidden** with "Request timestamp expired"
+
+**Rate Limiting Test**:
+```bash
+php test_rate_limiting.php
+```
+Sends multiple rapid requests to test rate limiting. Expected result: **429 Too Many Requests** after exceeding limits
+
+**POST Request Test**:
+```bash
+php test_post_request.php
+```
+Tests POST requests with body content in signature. Expected result: **200/201** with proper signature validation
+
+**Query String Test**:
+```bash
+php test_query_string.php
+```
+Tests that query parameters are properly included in signature. Expected result: **200 OK** with proper validation
+
+**All Tests**:
+```bash
+# Run all authentication tests
+cd src/Scripts
+php test_client_auth_valid.php
+php test_client_auth_invalid_key.php
+php test_client_auth_invalid_signature.php
+php test_client_auth_expired.php
+php test_post_request.php
+php test_query_string.php
+php test_rate_limiting.php
+```
+
+### Security Architecture Evolution
+
+**Before (January 2026)**
+```
+Request → Basic Auth → Database → Response
+```
+
+**After (February 2026)**
+```
+Request → Client Auth (HMAC) → Rate Limit → Basic Auth → Database → Audit Log → Response
+        ↓                    ↓                                     ↓
+    Signature Valid?    Within Limits?                    Log Everything
+```
+
+### Key Benefits Achieved
+
+🔒 **Multi-Layer Security**
+- Layer 1: Client authentication (proves authorized app)
+- Layer 2: User authentication (proves authorized user)
+- Layer 3: Rate limiting (prevents abuse)
+
+📊 **Complete Visibility**
+- Every request logged with validation status
+- Failed attempts tracked for security analysis
+- Performance metrics for optimization
+- Compliance-ready audit trail
+
+⚡ **Performance & Scalability**
+- Efficient sliding window rate limiting
+- Optional Redis support for high-traffic
+- Automatic cleanup of old records
+- Minimal overhead (~2-5ms per request)
+
+🛡️ **Attack Prevention**
+- HMAC prevents request tampering
+- Timestamp prevents replay attacks
+- Rate limiting prevents brute force
+- Audit logging enables threat detection
+
 ## 📨 Request/Response Examples
 
 ### GET Request - List Products
@@ -354,6 +1063,7 @@ curl -u "user@example.com:password" \
       "name": "Product Name",
       "price": 29.99,
       "stock": 100
+      ...
     }
   ]
 }
@@ -583,8 +1293,9 @@ CommerceApi uses standard HTTP status codes and returns errors in a consistent J
 | 201 | Created | Resource created successfully |
 | 400 | Bad Request | Invalid request parameters or data |
 | 401 | Unauthorized | Authentication failed or missing |
-| 403 | Forbidden | Feature not available in current plan |
+| 403 | Forbidden | Feature not available in current plan or invalid client authentication |
 | 404 | Not Found | Resource or endpoint not found |
+| 429 | Too Many Requests | Rate limit exceeded |
 | 500 | Internal Server Error | Server-side error occurred |
 | 503 | Service Unavailable | API in maintenance mode |
 
@@ -654,6 +1365,32 @@ All errors follow this structure:
 - Wait for maintenance to complete
 - Use debug key if you're a developer: `?debug-key=your_key`
 
+#### 429 Too Many Requests
+**Cause**: Rate limit exceeded for the API client
+
+**Response Format**:
+```json
+{
+  "status": "429",
+  "message": "Rate limit exceeded. Try again in 42 seconds."
+}
+```
+
+**Rate Limit Headers**:
+All responses include rate limit information:
+```
+X-RateLimit-Limit-Minute: 60
+X-RateLimit-Remaining-Minute: 0
+X-RateLimit-Limit-Hour: 1000
+X-RateLimit-Remaining-Hour: 450
+```
+
+**Solutions**:
+- Wait for the rate limit window to reset (shown in error message)
+- Implement exponential backoff in your client application
+- Contact administrator for higher rate limits if needed
+- Check the `X-RateLimit-*` headers to track usage
+
 ## 📝 Logging System
 
 CommerceApi includes a comprehensive logging system that tracks errors, information, and execution traces.
@@ -711,8 +1448,6 @@ CommerceApi implements multiple security measures to protect data and prevent at
 - **Email Encryption**: User emails are encrypted using AES-256-GCM
 - **Email Hashing**: SHA-256 hashes used for email lookups
 
-⚠️ **Production Recommendation**: Implement HTTPS/SSL certificates for production deployments.
-
 ### 2. SQL Injection Prevention
 
 All database queries use **prepared statements with PDO**:
@@ -723,8 +1458,6 @@ $statement = $this->dbConnection->prepare(
 );
 $statement->execute(['id' => $productId]);
 ```
-
-✅ **Never** use string concatenation for SQL queries.
 
 ### 3. Input Sanitization
 
@@ -754,21 +1487,49 @@ header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 ```
 
-⚠️ **Production Recommendation**: Restrict `Access-Control-Allow-Origin` to specific domains instead of `*`.
-
 ### 7. Feature Access Control
 
 Plan-based feature gating prevents unauthorized access to premium features.
 
+### 8. Client Authentication (HMAC Signatures)
+
+- **HMAC-SHA256 signatures** ensure request integrity and authenticity
+- **Timestamp validation** prevents replay attacks (±5 minute window)
+- **API secrets never transmitted** over the network
+- **Signature includes** HTTP method, URI, body, and timestamp
+- **Per-client authentication** separate from user authentication
+- **Failed attempts logged** for security monitoring
+
+### 9. Rate Limiting
+
+- **Prevents brute force attacks** and credential stuffing
+- **Limits API abuse** and resource exhaustion
+- **Database or Redis-based** tracking with sliding windows
+- **Per-client enforcement** (60/min, 1000/hour default)
+- **Configurable limits** per client in database
+- **Automatic cleanup** of old tracking records
+
+### 10. Audit Logging
+
+- **All requests logged** with validation status
+- **Failed signature attempts tracked** for security analysis
+- **Monitor for suspicious patterns** (multiple failures from same IP/client)
+- **Regulatory compliance support** with complete audit trail
+- **Performance metrics** tracked (response times)
+- **IP address logging** for geographic analysis
+
 ### Security Best Practices
 
-1. **Use HTTPS in production** - Essential for Basic Auth
+1. **Use HTTPS in production** - Essential for Basic Auth and protecting API keys
 2. **Restrict CORS origins** - Don't use `*` in production
 3. **Regular updates** - Keep PHP and dependencies updated
 4. **Strong credentials** - Use strong passwords and encryption keys
 5. **Database permissions** - Use least-privilege database users
-6. **Monitor logs** - Regularly review logs for suspicious activity
+6. **Monitor logs** - Regularly review audit logs for suspicious activity
 7. **Backup data** - Regular database backups
+8. **Rotate API secrets** - Periodically regenerate API credentials
+9. **Review rate limits** - Adjust based on legitimate usage patterns
+10. **Alert on anomalies** - Set up monitoring for repeated auth failures
 
 ## 💻 Development
 
@@ -923,6 +1684,44 @@ curl -u "user@example.com:password" \
   "http://localhost/CommerceApi/reports?reporttype=Sales&begindate=2025-01-01&enddate=2025-01-31"
 ```
 
+#### Test Client Authentication
+
+The API includes comprehensive test scripts for client authentication:
+
+```bash
+cd src/Scripts
+
+# Test valid authentication (expect 200 OK)
+php test_client_auth_valid.php
+
+# Test invalid API key (expect 403 Forbidden)
+php test_client_auth_invalid_key.php
+
+# Test invalid signature (expect 403 Forbidden)
+php test_client_auth_invalid_signature.php
+
+# Test expired timestamp (expect 403 Forbidden)
+php test_client_auth_expired.php
+
+# Test rate limiting (expect 429 after limit)
+php test_rate_limiting.php
+
+# Test POST request with body (expect 200/201)
+php test_post_request.php
+
+# Test query string inclusion (expect 200 OK)
+php test_query_string.php
+```
+
+**What Each Test Validates**:
+- `test_client_auth_valid.php` - Properly signed requests work correctly
+- `test_client_auth_invalid_key.php` - Invalid API keys are rejected
+- `test_client_auth_invalid_signature.php` - Tampered requests are rejected
+- `test_client_auth_expired.php` - Old timestamps are rejected (replay attack prevention)
+- `test_rate_limiting.php` - Rate limits are enforced properly
+- `test_post_request.php` - POST/PUT requests with bodies are signed correctly
+- `test_query_string.php` - Query parameters are included in signature
+
 ### Testing Checklist
 
 - [ ] Authentication with valid credentials
@@ -931,9 +1730,13 @@ curl -u "user@example.com:password" \
 - [ ] Feature gating for different plan types
 - [ ] Maintenance mode activation/deactivation
 - [ ] Debug key override in maintenance mode
-- [ ] Error responses (400, 401, 403, 404, 500, 503)
+- [ ] Error responses (400, 401, 403, 404, 429, 500, 503)
 - [ ] Report generation with various parameters
 - [ ] Client nested resources (sales, sales details)
+- [ ] Client authentication with valid API key and signature
+- [ ] Client authentication rejection scenarios
+- [ ] Rate limiting enforcement
+- [ ] Audit logging of requests
 
 ## 📄 License
 
@@ -951,4 +1754,4 @@ For questions, support, or feedback:
 
 **Built with ❤️ by Raul Pellizzer**
 
-*Last Updated: January 2026*
+*Last Updated: February 2026*
