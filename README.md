@@ -3,7 +3,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A robust, multi-tenant REST API for managing e-commerce operations, built with vanilla PHP and MySQL. CommerceApi provides comprehensive functionality for managing products, clients, sales, reports, and more, with built-in authentication, plan-based feature gating, and maintenance mode support.
+A robust, multi-tenant REST API for managing e-commerce operations, built with vanilla PHP and MySQL. CommerceApi provides comprehensive functionality for managing products, clients, sales, reports, and more, with built-in authentication and plan-based feature gating.
 
 ## 📑 Table of Contents
 
@@ -18,7 +18,6 @@ A robust, multi-tenant REST API for managing e-commerce operations, built with v
 - [Security Implementation](#-security-implementation)
 - [Request/Response Examples](#-requestresponse-examples)
 - [Features & Plan System](#-features--plan-system)
-- [Maintenance Mode](#-maintenance-mode)
 - [Error Handling](#-error-handling)
 - [Logging System](#-logging-system)
 - [Security Considerations](#-security-considerations)
@@ -43,7 +42,6 @@ A robust, multi-tenant REST API for managing e-commerce operations, built with v
 - **💰 Sales Management**: Track and manage sales transactions
 - **📈 Reports**: Generate sales and other business reports with date ranges
 - **⚙️ Configuration Management**: Dynamic API settings and configurations
-- **🔧 Maintenance Mode**: Control API availability with debug key override
 - **📝 Comprehensive Logging**: Track errors, info, and execution traces
 - **💊 Health Check Endpoint**: Monitor API status
 
@@ -73,7 +71,6 @@ CommerceApi implements enterprise-grade security measures:
 ✅ **API Protection**
 - Rate limiting prevents brute force and abuse
 - Plan-based feature gating
-- Maintenance mode with debug key override
 
 ## 🛠 Technology Stack
 
@@ -105,8 +102,7 @@ CommerceApi/
     │   ├── PlanController.php      # Plan and features
     │   ├── productController.php   # Product operations
     │   ├── ReportController.php    # Report generation
-    │   ├── SaleController.php      # Sales operations
-    │   └── SettingsController.php  # API settings
+    │   └── SaleController.php      # Sales operations
     ├── Middleware/           # Client Authentication Middleware
     │   └── ClientAuthMiddleware.php       
     ├── Model/                # Data layer
@@ -118,7 +114,6 @@ CommerceApi/
     │   ├── productModel.php        # Product data operations
     │   ├── ReportModel.php         # Report data generation
     │   ├── SaleModel.php           # Sales data operations
-    │   ├── SettingsModel.php       # Settings data
     │   └── UserModel.php           # Authentication & user data
     ├── Scripts/              # Setup and testing scripts
     │   ├── generate_api_credentials.php    # Generate API keys/secrets
@@ -308,7 +303,6 @@ The `.env.example` file provides a template for configuration:
 | `DB_USER` | Database username | `root` |
 | `DB_PASSWORD` | Database password | `yourpassword` |
 | `ENCRYPTION_KEY` | 32-character key for AES-256-GCM encryption | `your32characterencryptionkey123` |
-| `API_DEBUG_KEY` | Debug key for maintenance mode override | `debug-secret-key` |
 | `WPF_APP_API_KEY` | API key for WPF client application | `generated_via_script` |
 | `WPF_APP_API_SECRET` | API secret for HMAC signatures | `generated_via_script` |
 | `RATE_LIMIT_ENABLED` | Enable/disable rate limiting | `true` |
@@ -1231,10 +1225,6 @@ curl -u "freeuser@example.com:password" \
 }
 ```
 
-## 🔧 Maintenance Mode
-
-The API supports a maintenance mode that can disable access while allowing developers to test using a debug key.
-
 ### Enabling/Disabling the API
 
 API availability is controlled via the `IsApiOnline` setting in the configurations table.
@@ -1254,33 +1244,6 @@ curl -u "admin@example.com:password" \
   http://localhost/CommerceApi/configs
 ```
 
-### Debug Key Override
-
-During maintenance, developers can bypass the check using the debug key:
-
-```bash
-curl -u "dev@example.com:password" \
-  "http://localhost/CommerceApi/products?debug-key=your_debug_key"
-```
-
-**Configuration**:
-Set `API_DEBUG_KEY` in your `.env` file:
-```env
-API_DEBUG_KEY=my-secret-debug-key-12345
-```
-
-### Maintenance Response
-
-When the API is in maintenance mode without a valid debug key:
-
-**Response** (503 Service Unavailable):
-```json
-{
-  "status": "503",
-  "message": "API is currently unavailable"
-}
-```
-
 ## ⚠️ Error Handling
 
 CommerceApi uses standard HTTP status codes and returns errors in a consistent JSON format.
@@ -1297,7 +1260,6 @@ CommerceApi uses standard HTTP status codes and returns errors in a consistent J
 | 404 | Not Found | Resource or endpoint not found |
 | 429 | Too Many Requests | Rate limit exceeded |
 | 500 | Internal Server Error | Server-side error occurred |
-| 503 | Service Unavailable | API in maintenance mode |
 
 ### Error Response Format
 
@@ -1357,13 +1319,6 @@ All errors follow this structure:
 - Check database connection settings in `.env`
 - Review logs for stack traces
 - Ensure database schema is correct
-
-#### 503 Service Unavailable
-**Cause**: API in maintenance mode
-
-**Solutions**:
-- Wait for maintenance to complete
-- Use debug key if you're a developer: `?debug-key=your_key`
 
 #### 429 Too Many Requests
 **Cause**: Rate limit exceeded for the API client
@@ -1669,14 +1624,6 @@ curl -u "user@example.com:password" \
   http://localhost/CommerceApi/plan
 ```
 
-#### Test Maintenance Mode
-
-**With Debug Key**:
-```bash
-curl -u "user@example.com:password" \
-  "http://localhost/CommerceApi/products?debug-key=your_debug_key"
-```
-
 #### Test Reports
 
 ```bash
@@ -1728,8 +1675,6 @@ php test_query_string.php
 - [ ] Authentication with invalid credentials
 - [ ] All CRUD operations for each resource
 - [ ] Feature gating for different plan types
-- [ ] Maintenance mode activation/deactivation
-- [ ] Debug key override in maintenance mode
 - [ ] Error responses (400, 401, 403, 404, 429, 500, 503)
 - [ ] Report generation with various parameters
 - [ ] Client nested resources (sales, sales details)
