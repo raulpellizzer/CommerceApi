@@ -3,6 +3,8 @@
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+> **Status: Decommissioned** — This API has been intentionally retired and is no longer active. The live server is locked down at the web server level (HTTP 403) and no requests are processed. This repository is preserved as a portfolio reference showcasing the architecture and security implementation decisions made during development.
+
 A robust, multi-tenant REST API for managing e-commerce operations, built with vanilla PHP and MySQL. CommerceApi provides comprehensive functionality for managing products, clients, sales, reports, and more, with built-in authentication and plan-based feature gating.
 
 ## 📑 Table of Contents
