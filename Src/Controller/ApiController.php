@@ -145,7 +145,7 @@ class ApiController
      *
      * @return void
      */
-    public function connectTenantDb() {
+    private function connectTenantDb() {
         $dbName = $this->userModel->getUserDatabase($_SERVER['PHP_AUTH_USER']);
 
         $this->dbConnection = null;
