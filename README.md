@@ -1,6 +1,6 @@
 # CommerceApi 🛒
 
-[![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **Status: Decommissioned** — This API has been intentionally retired and is no longer active. The live server is locked down at the web server level (HTTP 403) and no requests are processed. This repository is preserved as a portfolio reference showcasing the architecture and security implementation decisions made during development.
